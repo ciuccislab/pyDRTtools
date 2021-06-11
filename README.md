@@ -1,10 +1,10 @@
-# DRTtools
+# pyDRTtools
 
-We are pleased to introduce the DRTtools, an open-source Matlab toolbox for computing distribution relaxation times (DRT) from electrochemical impedance spectroscopy (EIS) data. 
+We are pleased to introduce the pyDRTtools, is the python version of DRTtools for computing distribution relaxation times (DRT) from electrochemical impedance spectroscopy (EIS) data. 
 
-**What is the DRTtools? Why would I want it?**
+**What is the pyDRTtools? Why would I want it?**
 
-DRTtools is a Matlab toolbox that analyzes EIS data via the DRT model. DRTtools includes:
+pyDRTtools is a Python GUI that analyzes EIS data via the DRT model. pyDRTtools includes:
 
 - an intuitive GUI for computing DRT based on Tikhonov regularization
 
@@ -18,15 +18,14 @@ Hopefully, by now you are inclined to think that this toolbox may be useful to t
 
 # **Distribution and Release Information**
 
-DRTtools is freely available under the MIT license from this site.
+pyDRTtools is freely available under the MIT license from this site.
 
 # **System requirements**
 
-To install and run the DRTtools, you need:
+To install and run pyDRTtools, you need:
 
-Matlab 7.12 or above
-Optimization toolbox of Matlab
-The DRTtools toolbox was tested and implemented on a Windows-based machine. 
+Python 3
+Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY
 
 Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
 
