@@ -24,8 +24,7 @@ pyDRTtools is freely available under the MIT license from this site.
 
 To install and run pyDRTtools, you need:
 
-Python 3
-Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY
+Python 3, Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY
 
 Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
 
