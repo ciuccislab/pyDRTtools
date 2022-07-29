@@ -5,6 +5,7 @@ from scipy import integrate
 from scipy.optimize import fsolve
 from scipy.linalg import toeplitz, hankel
 import cvxpy as cp
+import cvxopt
 
 """
 this file store all the functions that are shared by all the three DRT method, i.e., simple, Bayesian, and BHT
@@ -523,6 +524,30 @@ def cvxpy_solve_qp(H, c):
     gamma = x.value
     
     return gamma
+
+
+def cvxopt_solve_qpr(P, q, G=None, h=None, A=None, b=None):
+    
+    """
+    this function formats a numpy matrix to cvxopt matrix, conducts the
+    quadratic programming with cvxopt, and outputs the optimum as a numpy array
+    """
+    
+    args = [cvxopt.matrix(P), cvxopt.matrix(q)]
+    
+    if G is not None:
+        args.extend([cvxopt.matrix(G), cvxopt.matrix(h)])
+    if A is not None:
+         args.extend([cvxopt.matrix(A), cvxopt.matrix(b)])
+        
+    cvxopt.solvers.options['abstol'] = 1e-15
+    cvxopt.solvers.options['reltol'] = 1e-15
+    sol = cvxopt.solvers.qp(*args)
+    if 'optimal' not in sol['status']:
+        return None
+    
+    return np.array(sol['x']).reshape((P.shape[1],))
+
 
 
 
