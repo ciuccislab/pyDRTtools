@@ -5,6 +5,7 @@ Created on Fri Dec  4 17:22:26 2020
 @author: thwan
 """
 import sys
+from os import environ
 import csv
 import numpy as np
 from numpy import inf, log, log10, absolute, angle
@@ -507,7 +508,9 @@ class Figure_Canvas(FigureCanvas):
             
 if __name__ == "__main__":
     # starting the GUI when users run this file 
+    environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
     app = QtWidgets.QApplication(sys.argv)
+    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     MainWindow = pyDRTtools_GUI()
     MainWindow.show()
     sys.exit(app.exec_())
