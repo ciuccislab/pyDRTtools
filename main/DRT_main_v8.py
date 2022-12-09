@@ -7,7 +7,9 @@ from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
 
 # DRTtools related package
-import general_fun as gf
+import general_fun_v8 as general_fun
+import importlib
+importlib.reload(general_fun)
 import Bayes_HT as BHT
 from hmc_exact import generate_tmg # used for Bayesian run
 
@@ -17,8 +19,8 @@ import os
 
 seconds = time.time()
 
-__authors__ = 'Ting Hei Wan'
-__date__ = '27 Jan 2021'
+__authors__ = 'Ting Hei Wan, Baptiste Py, Adeleke Maradesa'
+__date__ = '26 July 2022'
 
 
 """
@@ -128,6 +130,7 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             shape_control: Option for controlling the shape of the radial basis function (RBF) 
         Return:
             EIS_object updated with DRT computed
+        Reference: Adeleke, Maradesa, Baptiste Py, Ting Hei Wan, Mohammed B. Effat, and Francesco Ciucci. "Selecting the Regularization Parameter in the Distribution of Relaxation Times", 10.26434/chemrxiv-2022-0wb98 (2022).
     """
     
     # Step 1: Define the matrices
@@ -140,17 +143,17 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.b_im = entry.Z_exp.imag
     
     # Step 1.2: Compute epsilon
-    entry.epsilon = gf.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
+    entry.epsilon = general_fun.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
     
     # Step 1.3: Compute A matrix
-    entry.A_re_temp = gf.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
-    entry.A_im_temp = gf.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    entry.A_re_temp = general_fun.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    entry.A_im_temp = general_fun.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
     
     # Step 1.4: Compute M matrix
     if der_used == '1st order':
-        entry.M_temp = gf.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
+        entry.M_temp = general_fun.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
     elif der_used == '2nd order':
-        entry.M_temp = gf.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
+        entry.M_temp = general_fun.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
     
     # Step 2: Conduct Ridge regularization
     if data_used == 'Combined Re-Im Data': # select the part of impedance used fo simple run
@@ -181,13 +184,15 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             entry.M = np.zeros((N_taus+N_RL, N_taus+N_RL))
             entry.M[N_RL:,N_RL:] = entry.M_temp
         
-        # add the code that link with the cross-validation method
-        
-        H_combined,c_combined = gf.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
+        # select the regularization parameter, lambda, with generalized cross-validation (other regularization methods can be used by changing cv_type)
+        log_lambda_0 = log(10**-3) # initial guess of the parameter
+        cv_type = 'GCV'
+        lambda_value = general_fun.optimal_lambda(entry.A_re,entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) #compute  lambda
+        H_combined,c_combined = general_fun.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_combined, c_combined) # using cvxpy
+            x = general_fun.cvxpy_solve_qp(H_combined, c_combined) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_combined, c_combined) # using cvxopt
+            x = general_fun.cvxopt_solve_qpr(H_combined, c_combined) # using cvxopt
     
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
@@ -228,11 +233,11 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # add code that link with the cross-validation method
         
-        H_im, c_im = gf.quad_format(entry.A_im, entry.b_im, entry.M, lambda_value)
+        H_im, c_im = general_fun.quad_format(entry.A_im, entry.b_im, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_im, c_im) # using cvxpy
+            x = general_fun.cvxpy_solve_qp(H_im, c_im) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_im, c_im) # using cvxopt
+            x = general_fun.cvxopt_solve_qpr(H_im, c_im) # using cvxopt
         
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
@@ -261,11 +266,11 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # add code that link with the cross-validation method
         
-        H_re,c_re = gf.quad_format(entry.A_re, entry.b_re, entry.M, lambda_value)
+        H_re,c_re = general_fun.quad_format(entry.A_re, entry.b_re, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_re, c_re) # using cvxpy
+            x = general_fun.cvxpy_solve_qp(H_re, c_re) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_re, c_re) # using cvxopt
+            x = general_fun.cvxopt_solve_qpr(H_re, c_re) # using cvxopt
         
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
@@ -297,7 +302,7 @@ def Simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         entry.L, entry.R = x[0:2]
     
     entry.x = x[N_RL:]
-    entry.out_tau_vec,entry.gamma = gf.x_to_gamma(x[N_RL:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.gamma = general_fun.x_to_gamma(x[N_RL:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     entry.N_RL = N_RL 
     entry.method = 'simple'
     
@@ -342,9 +347,9 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
     entry.mean = np.mean(entry.Xs[:,501:],axis=1)    
     
     # map array to gamma
-    entry.out_tau_vec,entry.lower_bound = gf.x_to_gamma(entry.lower_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
-    entry.out_tau_vec,entry.upper_bound = gf.x_to_gamma(entry.upper_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
-    entry.out_tau_vec,entry.mean = gf.x_to_gamma(entry.mean, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.lower_bound = general_fun.x_to_gamma(entry.lower_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.upper_bound = general_fun.x_to_gamma(entry.upper_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mean = general_fun.x_to_gamma(entry.mean, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     
     entry.method = 'credit'
 
@@ -369,9 +374,9 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order',
     N_taus = entry.tau.shape[0]
     
     # Step 1: Construct the A matrix
-    entry.epsilon = gf.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
-    A_re_temp = gf.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
-    A_im_temp = gf.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    entry.epsilon = general_fun.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
+    A_re_temp = general_fun.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    A_im_temp = general_fun.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
     
     # add resistence column and inductance column to A_re and A_im
     entry.A_re = np.append(np.ones([N_freqs,1]), A_re_temp, axis=1)
@@ -383,10 +388,10 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order',
     
     # Step 2: Construct the M matrix
     if der_used == '1st order':
-        entry.M_temp = gf.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
+        entry.M_temp = general_fun.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
     
     elif der_used == '2nd order':
-        entry.M_temp = gf.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
+        entry.M_temp = general_fun.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
     
     entry.M = np.zeros((N_taus+1, N_taus+1))
     entry.M[1:,1:] = entry.M_temp
@@ -430,7 +435,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order',
 
     # Step 5.1.5: mu_gamma estimation
     entry.mu_gamma_re = out_dict_real.get('mu_gamma')
-    entry.out_tau_vec,entry.mu_gamma_fine_re = gf.x_to_gamma(entry.mu_gamma_re[1:],entry.tau_fine,entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mu_gamma_fine_re = general_fun.x_to_gamma(entry.mu_gamma_re[1:],entry.tau_fine,entry.tau, entry.epsilon, rbf_type)
     
     # Step 5.2: Imaginary data
     # Step 5.2.1: Bayesian regression
@@ -453,7 +458,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order',
 
     # Step 5.2.5: mu_gamma estimation
     entry.mu_gamma_im = out_dict_imag.get('mu_gamma')
-    entry.out_tau_vec,entry.mu_gamma_fine_im = gf.x_to_gamma(entry.mu_gamma_im[1:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mu_gamma_fine_im = general_fun.x_to_gamma(entry.mu_gamma_im[1:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     
     # Step 6: Plot the fit
     entry.mu_Z_H_re_agm = entry.mu_R_inf + entry.mu_Z_H_re
