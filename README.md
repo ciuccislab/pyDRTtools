@@ -52,8 +52,7 @@ Link: https://doi.org/10.1016/j.electacta.2020.136864
 
 if you want to add more details about standard regularization methods for computing the regularization parameter used in ridge regression, you should cite the following references also:
 
-**[5] Maradesa, A., Py, B., Wan, T. H., Effat, M. B., & Ciucci, F. (2022). Selecting the regularization parameter in the distribution of relaxation times. Preprint on ChemRxiv.
-**
+**[5] Maradesa, A., Py, B., Wan, T. H., Effat, M. B., & Ciucci, F. (2022). Selecting the regularization parameter in the distribution of relaxation times. Preprint on ChemRxiv.**
 
 Link: https://doi.org/10.26434/chemrxiv-2022-0wb98
 
