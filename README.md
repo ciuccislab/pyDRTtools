@@ -26,6 +26,12 @@ To install and run pyDRTtools, you need:
 
 Python 3, Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY
 
+You can run:
+
+`pip install -r requirements.txt`
+
+from the root directory of this project.
+
 Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
 
 # **How to cite this work?**
