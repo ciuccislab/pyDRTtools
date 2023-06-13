@@ -24,7 +24,7 @@ pyDRTtools is freely available under the MIT license from this site.
 
 To install and run pyDRTtools, you need:
 
-Python 3, Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY
+Python 3, Numpy, Pandas, Scipy, Matplotlib, PyQt5, and CVXPY, CVXOPT, Scikit-learn
 
 Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
 
@@ -52,9 +52,9 @@ Link: https://doi.org/10.1016/j.electacta.2020.136864
 
 if you want to add more details about standard regularization methods for computing the regularization parameter used in ridge regression, you should cite the following references also:
 
-**[5] Maradesa, A., Py, B., Wan, T. H., Effat, M. B., & Ciucci, F. (2022). Selecting the regularization parameter in the distribution of relaxation times. Preprint on ChemRxiv.**
+**[5] A. Maradesa, B. Py, T.H. Wan, M.B. Effat, F. Ciucci, Selecting the Regularization Parameter in the Distribution of Relaxation Times, Journal of the Electrochemical Society, 170 (2023) 030502.**
 
-Link: https://doi.org/10.26434/chemrxiv-2022-0wb98
+Link: https://doi.org/10.1149/1945-7111/acbca4
 
 **[6] Saccoccio, M., Wan. T. H., Chen, C., & Ciucci, F. Optimal regularization in distribution of relaxation times applied to electrochemical impedance spectroscopy: Ridge and lasso regression methods - A theoretical and experimental study. Electrochimica Acta, 147, 470-482.**
 
@@ -70,9 +70,11 @@ Just write to francesco.ciucci@ust.hk
 3. Ciucci, F. (2019). Modeling electrochemical impedance spectroscopy. Current Opinion in Electrochemistry, 13, 132-139. [doi.org/10.1016/j.coelec.2018.12.003](https://doi.org/10.1016/j.coelec.2018.12.003)
 4. Saccoccio, M., Wan, T. H., Chen, C., & Ciucci, F. (2014). Optimal regularization in distribution of relaxation times applied to electrochemical impedance spectroscopy: ridge and lasso regression methods-a theoretical and experimental study. Electrochimica Acta, 147, 470-482. [doi.org/10.1016/j.electacta.2014.09.058](https://doi.org/10.1016/j.electacta.2014.09.058)
 5. Wan, T. H., Saccoccio, M., Chen, C., & Ciucci, F. (2015). Influence of the discretization methods on the distribution of relaxation times deconvolution: implementing radial basis functions with DRTtools. Electrochimica Acta, 184, 483-499. [doi.org/10.1016/j.electacta.2015.09.097](https://doi.org/10.1016/j.electacta.2015.09.097)
-6. Ciucci, F., & Chen, C. (2015). Analysis of electrochemical impedance spectroscopy data using the distribution of relaxation times: A Bayesian and hierarchical Bayesian approach. Electrochimica Acta, 167, 439-454. [doi.org/10.1016/j.electacta.2015.03.123](https://doi.org/10.1016/j.electacta.2015.03.123)
-7. Effat, M. B., & Ciucci, F. (2017). Bayesian and hierarchical Bayesian based regularization for deconvolving the distribution of relaxation times from electrochemical impedance spectroscopy data. Electrochimica Acta, 247, 1117-1129. [doi.org/10.1016/j.electacta.2017.07.050](https://doi.org/10.1016/j.electacta.2017.07.050)
-8. Liu, J., & Ciucci, F. (2019). The Gaussian process distribution of relaxation times: A machine learning tool for the analysis and prediction of electrochemical impedance spectroscopy data. Electrochimica Acta, 135316. [doi.org/10.1016/j.electacta.2019.135316](https://doi.org/10.1016/j.electacta.2019.135316)
-9. Liu, J., & Ciucci, F. (2020). The Deep-prior distribution of relaxation times. Journal of The Electrochemical Society, 167(2), 026506. [10.1149/1945-7111/ab631a](https://iopscience.iop.org/article/10.1149/1945-7111/ab631a/meta)
-10. Saccoccio, M., Wan. T. H., Chen, C., & Ciucci, F. (2014). Optimal regularization in distribution of relaxation times applied to electrochemical impedance spectroscopy: Ridge and lasso regression methods - A theoretical and experimental study. Electrochimica Acta, 147, 470-482. [10.1016/j.electacta.2014.09.058] (https://doi.org/10.1016/j.electacta.2014.09.058)
-11. Maradesa, A., Py, B., Wan, T. H., Effat, M. B., & Ciucci, F. (2022). Selecting the regularization parameter in the distribution of relaxation times. Preprint on ChemRxiv. [10.26434/chemrxiv-2022-0wb98] (https://doi.org/10.26434/chemrxiv-2022-0wb98)
+6. A. Maradesa, B. Py, T.H. Wan, M.B. Effat, F. Ciucci, Selecting the Regularization Parameter in the Distribution of Relaxation Times, Journal of the Electrochemical Society, 170 (2023) 030502. [doi.org/10.1149/1945-7111/acbca4](https://doi.org/10.1149/1945-7111/acbca4)
+7. Ciucci, F., & Chen, C. (2015). Analysis of electrochemical impedance spectroscopy data using the distribution of relaxation times: A Bayesian and hierarchical Bayesian approach. Electrochimica Acta, 167, 439-454. [doi.org/10.1016/j.electacta.2015.03.123](https://doi.org/10.1016/j.electacta.2015.03.123)
+8. Effat, M. B., & Ciucci, F. (2017). Bayesian and hierarchical Bayesian based regularization for deconvolving the distribution of relaxation times from electrochemical impedance spectroscopy data. Electrochimica Acta, 247, 1117-1129. [doi.org/10.1016/j.electacta.2017.07.050](https://doi.org/10.1016/j.electacta.2017.07.050)
+9. A. Maradesa, B. Py, E. Quattrocchi, F. Ciucci, The probabilistic deconvolution of the distribution of relaxation times with finite Gaussian processes, Electrochimica Acta, 413 (2022) 140119. [doi.org/10.1016/j.electacta.2022.140119](https://doi.org/10.1016/j.electacta.2022.140119)
+10. Liu, J., & Ciucci, F. (2019). The Gaussian process distribution of relaxation times: A machine learning tool for the analysis and prediction of electrochemical impedance spectroscopy data. Electrochimica Acta, 135316. [doi.org/10.1016/j.electacta.2019.135316](https://doi.org/10.1016/j.electacta.2019.135316)
+11. Liu, J., & Ciucci, F. (2020). The Deep-prior distribution of relaxation times. Journal of The Electrochemical Society, 167(2), 026506. [10.1149/1945-7111/ab631a](https://iopscience.iop.org/article/10.1149/1945-7111/ab631a/meta)
+12. Saccoccio, M., Wan. T. H., Chen, C., & Ciucci, F. (2014). Optimal regularization in distribution of relaxation times applied to electrochemical impedance spectroscopy: Ridge and lasso regression methods - A theoretical and experimental study. Electrochimica Acta, 147, 470-482. [10.1016/j.electacta.2014.09.058] (https://doi.org/10.1016/j.electacta.2014.09.058)
+13. B. Py, A. Maradesa, F. Ciucci, Gaussian processes for the analysis of electrochemical impedance spectroscopy data: Prediction, filtering, and active learning, Electrochimica Acta. 439 (2023) 141688.[doi.org/10.1016/j.electacta.2022.141688](https://doi.org/10.1016/j.electacta.2022.141688)
