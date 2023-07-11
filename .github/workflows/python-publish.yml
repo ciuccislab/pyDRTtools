@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Publish Python distribution to Test PYPI
+name: Publish Python distribution to PYPITEST 
 on:
   workflow_dispatch:
 jobs:
@@ -24,9 +24,9 @@ jobs:
                  python -m pip install --upgrade pip
                  pip install flake8
             - name: Lint with flake8
-              #run: |
+              run: |
                  # Stop the build if there are Python syntax errors or undefined names
-                 #flak8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+                 flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
                  # exist-zero treat all errors as warning
                  #flake8 . --count --exist-zero --max-complexity=10 --max-line=127 --statistics
             - name: Build binary wheel and a source tarball
@@ -34,8 +34,8 @@ jobs:
             - name: Publish distribution to PYPI
               uses: pypa/gh-action-pypi-publish@master
               with:
-                user: __token__
                 password: ${{ secrets.PYPI_API_TOKEN }}
+                repository_url: https://test.pypi.org/legacy/
             
              
    
