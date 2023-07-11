@@ -32,10 +32,10 @@ jobs:
             - name: Build binary wheel and a source tarball
               run: python setup.py sdist
             - name: Publish distribution to PYPI
-              uses: pypa/gh-action-pypi-publish@release/v1
+              uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
               #pypa/gh-action-pypi-publish@master
               with:
-                password: ${{ secrets.PYPI_API_TOKEN }}
+                password: ${{ secrets.PYDRTTOOLS }}
                 repository_url: https://test.pypi.org/legacy/
             
              
