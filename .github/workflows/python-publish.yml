@@ -2,7 +2,7 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
 
 # Connect to the PYPI
-# documentation.
+# documentation for pyDRTtools
 
 name: Publish Python distribution to PYPITEST 
 on:
