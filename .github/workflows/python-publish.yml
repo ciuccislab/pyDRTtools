@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: Publish Python distribution to PYPITEST 
+name: Publish-Python-distribution-to-PYPITEST 
 on:
   workflow_dispatch:
 jobs:
