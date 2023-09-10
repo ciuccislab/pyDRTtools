@@ -1,8 +1,8 @@
-cvxopt == 1.3.0
-cvxpy == 1.3.0
-matplotlib == 3.6.3
-pandas == 1.5.3
-numpy == 1.24.1
-scipy == 1.10.0
-scikit-learn == 1.2.1
+cvxopt == 1.3.2
+cvxpy == 1.3.2
+matplotlib == 3.7.2
+pandas == 2.0.3
+numpy == 1.25.2
+scipy == 1.11.2
+scikit-learn == 1.3.0
 PyQt5 == 5.15.9

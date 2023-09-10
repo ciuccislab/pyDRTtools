@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Baptiste Py, Ting Hei Wan, Adeleke Maradesa'
 
-__date__ = '12th June 2023'
+__date__ = '20th August 2023'
 
 import sys
 import csv
 import numpy as np
-from numpy import inf, log, log10, absolute, angle
-
-from PyQt5 import QtCore, QtGui, QtWidgets
+from numpy import log10, absolute, angle
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
-from layout_pyDRTtools import Ui_MainWindow
-from runs_pyDRTtools import *
-
-# import matplotlib related packages
+from pyDRTtools_layout import Ui_MainWindow
+from pyDRTtools_runs import *
 import matplotlib as mpl
 mpl.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-#plt.rc('text', usetex=True)
 
 
 class pyDRTtools_GUI(QtWidgets.QMainWindow):
@@ -31,7 +27,7 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
        
-        # setting data to be None initallyNone
+        # setting data to be initially none
         self.data = None
        
         # linking buttons with various functions
@@ -54,7 +50,7 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         self.ui.simple_run_button.clicked.connect(self.simple_run_callback)
         self.ui.bayesian_button.clicked.connect(self.bayesian_run_callback)
         self.ui.HT_button.clicked.connect(self.BHT_run_callback)
-        
+        self.ui.peak_decon_button.clicked.connect(self.peak_analysis_run_callback)
         
         # export result buttons
         self.ui.export_DRT_button.clicked.connect(self.export_DRT)
@@ -62,10 +58,11 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         self.ui.export_fig_button.clicked.connect(self.export_fig)
        
     def import_file(self):
-        # file dialog pop up, user can choose a csv or a txt file
+        
+        # file dialog pop up, the users can choose a csv or txt file
         path, ext = QFileDialog.getOpenFileName(None, "Please choose a file", "", "All Files (*);; CSV files (*.csv);; TXT files (*.txt)") 
         
-        # return if there are no path or the file format is not correct
+        # return if there is no path or the file format is not correct
         if not (path.endswith('.csv') or path.endswith('.txt')):
             print('return')
             return
@@ -81,28 +78,25 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         if self.data is None:
             return
         
-        elif self.ui.induct_choice.currentIndex() == 2:
-            # discard inductive data
+        elif self.ui.induct_choice.currentIndex() == 2: # discard inductive data
             self.data.freq = self.data.freq[-self.data.Z_double_prime>0]
             self.data.Z_prime = self.data.Z_prime[-self.data.Z_double_prime>0]
             self.data.Z_double_prime = self.data.Z_double_prime[-self.data.Z_double_prime>0]
             self.data.Z_exp = self.data.Z_prime + self.data.Z_double_prime*1j
             
-        else: 
-            # use original data otherwise
+        else: # use original data otherwise
             self.data.freq = self.data.freq_0
             self.data.Z_prime = self.data.Z_prime_0
             self.data.Z_double_prime = self.data.Z_double_prime_0
             self.data.Z_exp = self.data.Z_exp_0
         
-        self.data.tau = 1/self.data.freq # we assume that the collocation points equal to 1/freq as default
+        self.data.tau = 1/self.data.freq # we assume that the collocation points are equal to 1/freq as default
         self.data.tau_fine  = np.logspace(log10(self.data.tau.min())-0.5,log10(self.data.tau.max())+0.5,10*self.data.freq.shape[0])
         self.data.method = 'none'
         
         self.plotting_callback('EIS_data')
     
-    def simple_run_callback(self):
-        # callback for simple ridge regularization
+    def simple_run_callback(self): # callback for simple ridge regularization
         
         if self.data is None:
             return
@@ -116,13 +110,12 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text())
         
-        # perform computation
+        # we perform the computation
         self.data = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
                                 der_used = der_used, cv_type = cv_type, shape_control = shape_control, coeff = coeff)
         self.plotting_callback('DRT_data')
 
-    def bayesian_run_callback(self):
-        # callback for bayesian regularization
+    def bayesian_run_callback(self): # callback for Bayesian regularization
         
         if self.data is None:
             return
@@ -137,14 +130,13 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         coeff = float(self.ui.FWHM_entry.text())
         sample_number = int(self.ui.sample_no_entry.text())
         
-        # perform computation
+        # we perform the computation
         self.data = Bayesian_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used, 
                                  der_used = der_used, cv_type = cv_type, shape_control = shape_control, 
                                  coeff = coeff, NMC_sample = sample_number)        
         self.plotting_callback('DRT_data')
         
-    def BHT_run_callback(self):
-        # callback for Hilbert Transform run
+    def BHT_run_callback(self): # callback for Hilbert transform run
         
         if self.data is None:
             return
@@ -155,12 +147,11 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text()) 
         
-        # perform computation
+        # we perform the computation
         self.data = BHT_run(self.data, rbf_type, der_used, shape_control, coeff)
         self.plotting_callback('DRT_data')
     
-    def peak_analysis_callback(self):
-        # callback for peak analysis
+    def peak_analysis_run_callback(self): # callback for peak analysis
         
         if self.data is None:
             return
@@ -173,16 +164,17 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         cv_type = str(self.ui.lambda_choice.currentText())
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text())
-        peak_num = float(self.ui.Number_peaks_entry.text())
+        peak_method = str(self.ui.peak_method_choice.currentText())
+        N_peaks = float(self.ui.peak_num_entry.text())
         
-        # perform computation
-        self.data = peak_analysis(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used, 
-                        der_used = der_used, cv_type = cv_type, shape_control = shape_control, coeff = coeff, peak_num = peak_num)
+        # we perform the computation
+        self.data = peak_analysis(self.data,rbf_type = rbf_type, data_used = data_used, induct_used = induct_used, 
+                        der_used = der_used, cv_type = cv_type, shape_control = shape_control, coeff = coeff, peak_method=peak_method, N_peaks=N_peaks)
         self.plotting_callback('DRT_data')
         
     def plotting_callback(self, plot_to_show):
         
-        # not plotting anything if no data is imported
+        # not plotting if no data has been imported
         if self.data == None:
             return
         
@@ -190,7 +182,6 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         fig = Figure_Canvas()
         
         # rendering the figure object on to the gui
-        
         fig_to_plot = getattr(fig,plot_to_show)
         fig_to_plot(self.data)
         graphicscene = QtWidgets.QGraphicsScene(20, 25, 650, 610)
@@ -198,36 +189,39 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         self.ui.plot_panel.setScene(graphicscene)
         self.ui.plot_panel.show()
     
-    def export_DRT(self):
-        # callback for exporting the DRT results
+    def export_DRT(self): # callback for exporting the DRT results
         
-        # return if users have not conduct any computation
+        # return None if the users have not conducted any computation
         if self.data == None:
             return
         
-        # select path to save the result
+        # select path to save the results
         path, ext = QFileDialog.getSaveFileName(None, "Please directory to save the DRT result", 
                                                 "", "CSV files (*.csv);; TXT files (*.txt)")
         
         if self.data.method == 'simple':
             with open(path, 'w', newline='') as save_file:
                 writer = csv.writer(save_file)
+                
                 # first save L and R
                 writer.writerow(['L', self.data.L])
                 writer.writerow(['R', self.data.R])
                 writer.writerow(['tau','gamma'])
-                # after that save tau and gamma
+                
+                # after that, save tau and gamma
                 for n in range(self.data.out_tau_vec.shape[0]):
                     writer.writerow([self.data.out_tau_vec[n], self.data.gamma[n]])
             
         elif self.data.method == 'credit':
             with open(path, 'w', newline='') as save_file:
                 writer = csv.writer(save_file)
+                
                 # first save L and R
                 writer.writerow(['L', self.data.L])
                 writer.writerow(['R', self.data.R])
                 writer.writerow(['tau','MAP','Mean','Upperbound','Lowerbound'])
-                # after that save tau, gamma, mean, upper bound and lower bound
+                
+                # after that, save tau, gamma, mean, upper bound, and lower bound
                 for n in range(self.data.out_tau_vec.shape[0]):
                     writer.writerow([self.data.out_tau_vec[n], self.data.gamma[n],
                                     self.data.mean[n], self.data.upper_bound[n], 
@@ -236,20 +230,21 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
         elif self.data.method == 'BHT':
             with open(path, 'w', newline='') as save_file:
                 writer = csv.writer(save_file)
+                
                 # first save L and R
                 writer.writerow(['L', self.data.mu_L_0])
                 writer.writerow(['R', self.data.mu_R_inf])
                 writer.writerow(['tau','gamma_Re','gamma_Im'])
-                # after that save tau, gamma_re and gamma_im 
+                
+                # after that, save tau, gamma_re, and gamma_im 
                 for n in range(self.data.out_tau_vec.shape[0]):
                     writer.writerow([self.data.out_tau_vec[n], 
                                      self.data.mu_gamma_fine_re[n],
                                      self.data.mu_gamma_fine_im[n]])
     
-    def export_EIS(self):
-        # callback for exporting the EIS fitting results
+    def export_EIS(self): # callback for exporting the EIS fitting results
         
-        # return if users have not conduct any computation
+        # return None if the users have not conducted any computation
         if self.data == None:
             return
         
@@ -291,10 +286,9 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
                                      self.data.mu_Z_im[n], self.data.res_re[n],
                                      self.data.res_im[n]])
     
-    def export_fig(self):
-        # export figure as png
+    def export_fig(self): # export the figures as png
         
-        # return if users have not conduct any computation
+        # return if users have not conducted any computation
         if self.data == None:
             return
         
@@ -311,8 +305,7 @@ class pyDRTtools_GUI(QtWidgets.QMainWindow):
 
 class Figure_Canvas(FigureCanvas):
     
-    def __init__(self, parent=None, width=7.5, height=6.5, dpi=100):
-        # create Figure under matplotlib.pyplot
+    def __init__(self, parent=None, width=7.5, height=6.5, dpi=100): # create Figure under matplotlib.pyplot
         
         # deactivate the popping of another figure panel
         plt.ioff()
@@ -330,8 +323,7 @@ class Figure_Canvas(FigureCanvas):
         fig.tight_layout()
         fig.subplots_adjust(left=0.14, bottom=0.13, right=0.9, top=0.9)
         
-    def EIS_data(self, entry):
-        # plot the data
+    def EIS_data(self, entry): # plot the data
         
         if entry.method == 'BHT': # for BHT run
             self.axes.plot(entry.mu_Z_re, -entry.mu_Z_im, 
@@ -345,7 +337,7 @@ class Figure_Canvas(FigureCanvas):
             self.axes.plot(entry.mu_Z_re, -entry.mu_Z_im, 'k', linewidth=2)
             self.axes.plot(entry.Z_prime, -entry.Z_double_prime, 'or')
         
-        else: # no computation for imported data yet
+        else: # no computation of the imported data yet
             self.axes.plot(entry.Z_prime, -entry.Z_double_prime, 'or')
         
         self.axes.set_xlabel('$Z^{\prime}/\Omega$')
@@ -353,8 +345,7 @@ class Figure_Canvas(FigureCanvas):
         self.axes.ticklabel_format(axis="both", style="sci", scilimits=(0,0))
         self.axes.axis('equal')
 
-    def Magnitude(self, entry):
-        # plot magnitude
+    def Magnitude(self, entry): # plot the magnitude
         
         if entry.method == 'BHT': # for BHT run
             self.axes.semilogx(entry.freq, absolute(entry.mu_Z_re+1j*entry.mu_Z_im), 
@@ -368,15 +359,14 @@ class Figure_Canvas(FigureCanvas):
             self.axes.semilogx(entry.freq, absolute(entry.mu_Z_re+1j*entry.mu_Z_im), 'k', linewidth=3)
             self.axes.semilogx(entry.freq, absolute(entry.Z_exp), 'or')
             
-        else: # no computation for imported data yet
+        else: # no computation of the imported data yet
             self.axes.semilogx(entry.freq, absolute(entry.Z_exp), 'or')
         
         self.axes.set_xlim([min(entry.freq), max(entry.freq)])    
         self.axes.set_xlabel('$f/Hz$')
         self.axes.set_ylabel('$|Z|/\Omega$')
         
-    def Phase(self, entry):
-        # plot phase angle
+    def Phase(self, entry): # plot the phase
         
         if entry.method == 'BHT': # for BHT run
             self.axes.semilogx(entry.freq, angle(entry.mu_Z_re+1j*entry.mu_Z_im, deg = True),
@@ -390,15 +380,14 @@ class Figure_Canvas(FigureCanvas):
             self.axes.semilogx(entry.freq, angle(entry.mu_Z_re+1j*entry.mu_Z_im, deg = True), 'k', linewidth=3)
             self.axes.semilogx(entry.freq, angle(entry.Z_exp, deg = True), 'or')
             
-        else: # no computation for imported data yet
+        else: # no computation of the imported data yet
             self.axes.semilogx(entry.freq, angle(entry.Z_exp, deg = True), 'or')
         
         self.axes.set_xlim([min(entry.freq), max(entry.freq)])    
         self.axes.set_xlabel('$f/Hz$')
         self.axes.set_ylabel('$angle/^\circ$')
         
-    def Re_data(self, entry):
-        # plot real part
+    def Re_data(self, entry): # plot the real part
         
         if entry.method == 'BHT': # for BHT run
             self.axes.fill_between(entry.freq, entry.mu_Z_H_re_agm-3*entry.band_re_agm, entry.mu_Z_H_re_agm+3*entry.band_re_agm,  facecolor='lightgrey')
@@ -411,15 +400,14 @@ class Figure_Canvas(FigureCanvas):
             self.axes.semilogx(entry.freq, entry.mu_Z_re, 'k', linewidth=3)
             self.axes.semilogx(entry.freq, entry.Z_prime, 'or')
             
-        else: # no computation for imported data yet
+        else: # no computation of the imported data yet
             self.axes.semilogx(entry.freq, entry.Z_prime, 'or')
         
         self.axes.set_xlim([min(entry.freq), max(entry.freq)])    
         self.axes.set_xlabel('$f/Hz$')
         self.axes.set_ylabel('$Z^{\prime}/\Omega$')
         
-    def Im_data(self, entry):
-        # plot imaginary part
+    def Im_data(self, entry): # plot of the imaginary part
         
         if entry.method == 'BHT': # for BHT run
             self.axes.fill_between(entry.freq, -entry.mu_Z_H_im_agm-3*entry.band_im_agm, -entry.mu_Z_H_im_agm+3*entry.band_im_agm,  facecolor='lightgrey')
@@ -432,15 +420,14 @@ class Figure_Canvas(FigureCanvas):
             self.axes.semilogx(entry.freq, -entry.mu_Z_im, 'k')
             self.axes.semilogx(entry.freq, -entry.Z_double_prime, 'or')
         
-        else: # no computation for imported data yet
+        else: # no computation of the imported data yet
             self.axes.semilogx(entry.freq, -entry.Z_double_prime, 'or')
         
         self.axes.set_xlim([min(entry.freq), max(entry.freq)])    
         self.axes.set_xlabel('$f/Hz$')
         self.axes.set_ylabel('-$Z^{\prime \prime}/\Omega$')
         
-    def Re_residual(self, entry):
-        # plot the residual in the real part
+    def Re_residual(self, entry): # plot the residuals of the real part of the impedance
         
         if entry.method == 'none' : # or str(entry.ui.data_used_choice.currentText()) == 'Im Data':
             return
@@ -462,8 +449,7 @@ class Figure_Canvas(FigureCanvas):
         self.axes.set_ylim([-1.1*y_max, 1.1*y_max])
         self.axes.ticklabel_format(axis= 'y', style="sci", scilimits=(0,0))
           
-    def Im_residual(self, entry):
-        # plot the residual in the imaginary part
+    def Im_residual(self, entry): # plot the residuals of the imaginary part of the impedance
         
         if entry.method == 'none' : # or str(entry.ui.data_used_choice.currentText()) == 'Re Data':
             return
@@ -485,8 +471,7 @@ class Figure_Canvas(FigureCanvas):
         self.axes.set_ylim([-1.1*y_max, 1.1*y_max])
         self.axes.ticklabel_format(axis = 'y', style="sci", scilimits=(0,0))
         
-    def DRT_data(self, entry):
-        # plot the DRT
+    def DRT_data(self, entry): # plot the DRT
         
         if entry.method == 'none':
             return
@@ -513,12 +498,16 @@ class Figure_Canvas(FigureCanvas):
             y_max = max(np.concatenate((entry.mu_gamma_fine_re,entry.mu_gamma_fine_im)))
             
         elif entry.method == 'peak':
-        
-            self.axes.semilogx(entry.out_tau_vec, entry.gamma, color='black', linewidth=3)
             
-            for i in range(entry.N_peak):
-                print('i', i, entry.N_peak)
-                self.axes.semilogx(entry.out_tau_vec, entry.g_gauss_mat[:, i], linewidth=3)
+            self.axes.semilogx(entry.out_tau_vec, entry.gamma, color='black', linewidth=3)
+            color = ['red', 'green', 'cyan', 'yellow', 'orange', 'blue', 'grey', 'brown', 'coral', 'darkblue', 'darkgreen', 'gold']
+            
+            if len(entry.out_gamma_fit)==entry.N_peaks: # separate fit of the peaks
+                for i in range(entry.N_peaks):
+                    self.axes.semilogx(entry.out_tau_vec, entry.out_gamma_fit[i], color=color[i], linewidth=3)
+            
+            else: # combine fit of the DRT peaks
+                self.axes.semilogx(entry.out_tau_vec, entry.out_gamma_fit, color = 'green', linewidth=3)
             y_min = 0
             y_max = max(entry.gamma)
         
@@ -527,8 +516,7 @@ class Figure_Canvas(FigureCanvas):
         self.axes.set_ylim([y_min, 1.1*y_max])
         self.axes.set_xlim([min(entry.out_tau_vec), max(entry.out_tau_vec)])
     
-    def Score(self, entry):
-        # plot EIS score
+    def Score(self, entry): # plot the EIS score
         
         if entry.method != 'BHT':
             return
@@ -553,8 +541,7 @@ class Figure_Canvas(FigureCanvas):
             self.axes.set_yticks([0,50,100]) 
             self.axes.set_ylabel(r'$\rm Scores (\%)$')
             
-if __name__ == "__main__":
-    # starting the GUI when users run this file 
+if __name__ == "__main__": # starting the GUI when users run this file 
     
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = pyDRTtools_GUI()

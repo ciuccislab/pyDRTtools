@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Ting Hei Wan'
 
-__date__ = '12th June 2023'
+__date__ = '20th August 2023'
 
 import numpy as np
 from numpy import inf, pi
@@ -182,8 +182,8 @@ if __name__ == '__main__':
         It will not be executed when this script is imported with import hmc_exact
     """
     
-    from DRT_main import *
-    import general_fun as gf
+    from pyDRTtools_runs import *
+    import pyDRTtools_basics as gf
     
     # import EIS file
     object_A = EIS_object.from_file('data_1.csv')
