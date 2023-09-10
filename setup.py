@@ -19,6 +19,10 @@ setuptools.setup(
     project_urls = {
         "Bug Tracker": "https://github.com/ciuccislab/pyDRTtools",
     },
+    entry_points={
+        "console_scripts": [
+            "launch_pydrttool=src.pyDRTtools_GUI:main",
+        ],
     classifiers = [
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
