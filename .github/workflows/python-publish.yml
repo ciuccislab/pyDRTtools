@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: Python-distribution-on-testpypi 
+name: Python distribution on-testpypi 
 on:
   workflow_dispatch:
 jobs:
