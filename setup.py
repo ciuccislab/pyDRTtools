@@ -41,7 +41,7 @@ setuptools.setup(
         # List your dependencies here
         "cvxopt >= 1.2.0",  
         "cvxpy >= 1.1.0",
-        "matplotlib >= 3.7.0",
+        "matplotlib >= 3.1.0",
         "pandas >= 1.5.3",
         "numpy >= 1.20.1",
         "scipy >= 1.10.1",
