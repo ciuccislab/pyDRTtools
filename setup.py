@@ -42,7 +42,7 @@ setuptools.setup(
         "cvxopt >= 1.1.9",  
         "cvxpy >= 1.3.2",
         "matplotlib >= 3.7.2",
-        "pandas ~= 2.0.3",
+        "pandas >= 2.0.3",
         "numpy >= 1.25.2",
         "scipy >= 1.11.2",
         "scikit-learn >= 1.3.0",
