@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: TestPYPI-Dist-I
+name: TestPYPI-Dist-J
 on:
   workflow_dispatch:
 jobs:
