@@ -44,6 +44,7 @@ setuptools.setup(
         "PyQt5 >= 5.12, <= 5.15.9",
         "pandas >= 1.5, < 2.0",
         "numpy >= 1.18, < 2.0",
+        "scipy ~= 1.11"
     ],
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
