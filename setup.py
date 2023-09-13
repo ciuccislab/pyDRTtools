@@ -13,12 +13,14 @@ def readme():
 
 # Define a function to read the extra_requirements.txt file (for extra dependencies)
 def extra_requirements():
-    with open(os.path.join(current_directory, 'requirements.txt')) as f:
+    # Specify the correct path to requirements.txt based on your project's directory structure
+    requirements_file = os.path.join(current_directory, 'requirements.txt')
+    with open(requirements_file) as f:
         return f.read().splitlines()
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.12",
+    version = "0.2.8.13",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -49,7 +51,6 @@ setuptools.setup(
     ],
     install_requires = [
         "cvxopt ~= 1.3",
-        "setuptools >= 67.2",
         "scipy >= 1.4, < 2.0",
         "scikit-learn >= 0.23, <= 1.3",
         "PyQt5 >= 5.12, <= 5.15.9",
