@@ -2,9 +2,9 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
 
 # Connect to the PYPI
-# documentation.
+# documentation for pyDRTtools
 
-name: Publish Python distribution to PYPITEST 
+name: PYPITestDistributionF
 on:
   workflow_dispatch:
 jobs:
@@ -13,10 +13,10 @@ jobs:
          runs-on: ubuntu-latest
          steps:
             - uses: actions/checkout@v3
-            - name: Initialize Python 3.9
+            - name: Initialize Python    #3.9
               uses: actions/setup-python@v3
               with:
-                   python-version: 3.9  ## Set yp python 3.9
+                   python-version: "3.x" #3.9  ## Set yp python 3.9
             - name: Install dependencies
               run: |
                  python -m pip install --upgrade pip
