@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: TestPYPI-Dist-A-CdBab
+name: TestPYPI-Dist-A-CdBay
 on:
   workflow_dispatch:
 jobs:
