@@ -12,7 +12,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.9",
+    version = "0.2.8.10",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -53,7 +53,6 @@ setuptools.setup(
     extras_require={
         'requirements': requirements,  # Specify as an optional extra
     },
-    ],
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">=3"
