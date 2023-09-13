@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: PYPITestDistributionD
+name: PYPITestDistributionE
 on:
   workflow_dispatch:
 jobs:
