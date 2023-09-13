@@ -1,2 +1,1 @@
 matplotlib == 3.7.2
-setuptools == 68.2.2
