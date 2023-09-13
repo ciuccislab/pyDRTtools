@@ -1,8 +1,4 @@
 import setuptools
-import os  
-
-# Get the current directory of the setup.py file
-current_directory = os.path.abspath(os.path.dirname(__file__))
 
 def readme():
     try:
@@ -11,16 +7,9 @@ def readme():
     except IOError:
         return ''
 
-# Define a function to read the extra_requirements.txt file (for extra dependencies)
-def extra_requirements():
-    # Specify the correct path to requirements.txt based on your project's directory structure
-    requirements_file = os.path.join(current_directory, 'requirements.txt')
-    with open(requirements_file) as f:
-        return f.read().splitlines()
-
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.13",
+    version = "0.2.8.14",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -57,9 +46,6 @@ setuptools.setup(
         "pandas >= 1.5, < 2.0",
         "numpy >= 1.18, < 2.0",
     ],
-    extras_require={
-        'requirements': extra_requirements(),  # Specify as an optional extra
-    },
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">=3"
