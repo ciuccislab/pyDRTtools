@@ -1,4 +1,5 @@
 import setuptools
+import os  
 
 # Get the current directory of the setup.py file
 current_directory = os.path.abspath(os.path.dirname(__file__))
@@ -17,7 +18,7 @@ def extra_requirements():
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.11",
+    version = "0.2.8.12",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
