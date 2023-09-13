@@ -9,7 +9,7 @@ def readme():
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.22",
+    version = "0.2.8.23",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -20,9 +20,10 @@ setuptools.setup(
         "Source Code": "https://github.com/ciuccislab/pyDRTtools",
         "Bug Tracker": "https://github.com/ciuccislab/pyDRTtools/issues",
     },
+    packages=['pyDRTtools'],
     entry_points={
         "console_scripts": [
-            "pyDRTtoolsui=src.pyDRTtools_GUI:pyDRTtools_GUI",
+            "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:pyDRTtools_GUI",
         ],
     },
     classifiers = [
@@ -37,9 +38,10 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    #packages=['pyDRTtools'],
+    packages=['pyDRTtools'],
     include_package_data=True,
-    package_dir = {"": "src"},
-    packages = setuptools.find_packages(where="src"),
+    
+    #package_dir = {"": "src"},
+    #packages = setuptools.find_packages(where="src"),
     python_requires = ">=3"
 )
