@@ -9,7 +9,7 @@ def readme():
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.26",
+    version = "0.2.8.20",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -17,25 +17,40 @@ setuptools.setup(
     long_description_content_type = "text/markdown",
     url = "https://github.com/ciuccislab/pyDRTtools",
     project_urls = {
-        "Bug Tracker": "https://github.com/ciuccislab/pyDRTtools",
+        "Source Code": "https://github.com/ciuccislab/pyDRTtools",
+        "Bug Tracker": "https://github.com/ciuccislab/pyDRTtools/issues",
+    },
+    entry_points={
+        "console_scripts": [
+            "pyDRTtoolsui=src.pyDRTtools_GUI:pyDRTtools_GUI",
+        ],
     },
     classifiers = [
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[
-        # List your dependencies here
-        "cvxopt == 1.3.2",  
-        "cvxpy == 1.3.2",
-        "matplotlib == 3.7.2",
-        "pandas == 2.0.3",
-        "numpy == 1.25.2",
-        "scipy == 1.11.2",
-        "scikit-learn == 1.3.0",
-        "PyQt5 == 5.15.9",
+    #packages=['pyDRTtools'],
+    
+    install_requires = [
+        'cvxopt',
+        'pandas',
+        'scipy',
+        'numpy',
+        'scikit-learn',
+        'matplotlib',
+        'PyQt5',
     ],
+    include_package_data=True,
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
-    python_requires = ">=3.6"
+    python_requires = ">=3"
 )
