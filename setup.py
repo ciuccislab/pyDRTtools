@@ -9,7 +9,7 @@ def readme():
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.19",
+    version = "0.2.8.20",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -42,7 +42,6 @@ setuptools.setup(
     
     install_requires = [
         'cvxopt',
-        'cvxpy',
         'pandas',
         'scipy',
         'numpy',
