@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: PYPITestDistributionPYPIAB
+name: PYPITestDistributionPYPIABC
 on:
   workflow_dispatch:
 jobs:
