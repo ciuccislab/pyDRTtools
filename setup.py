@@ -48,6 +48,9 @@ setuptools.setup(
         'matplotlib',
         'PyQt5==5.15.4',
     ],
+    extras_require={
+        "extra_deps": ["-r requirements.txt"]
+    },
     include_package_data=True,
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
