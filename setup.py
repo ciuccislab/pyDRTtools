@@ -46,8 +46,8 @@ setuptools.setup(
         'numpy',
         'scikit-learn',
         'pyqt5-tools~=5.15',
-        'matplotlib',
-        'pandas',       
+        #'matplotlib',
+        #'pandas',       
     ],
     #entry_points={
     #"console_scripts": [
