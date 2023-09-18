@@ -22,7 +22,7 @@ setuptools.setup(
     },
     entry_points={
         "console_scripts": [
-            "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:pyDRTtools_GUI",
+            "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:main",
         ],
     },
     classifiers = [
@@ -49,9 +49,9 @@ setuptools.setup(
         'matplotlib',
         'pandas',       
     ],
-    entry_points={
-    "console_scripts": [
-        "pyDRTtoolsgui=pyDRTtools.pyDRTtools_GUI:main",
+    #entry_points={
+    #"console_scripts": [
+        #"pyDRTtoolsgui=pyDRTtools.pyDRTtools_GUI:main",
     ],
     },
     include_package_data=True,
