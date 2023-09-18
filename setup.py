@@ -46,8 +46,8 @@ setuptools.setup(
         'numpy',
         'scikit-learn',
         'pyqt',
-        'pandas',
         'matplotlib',
+        'pandas',       
     ],
     #extras_require = {
         #"extra_deps": open("requirements.txt").read().splitlines()
