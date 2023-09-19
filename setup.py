@@ -52,8 +52,8 @@ setuptools.setup(
     #entry_points={
     #"console_scripts": [
         #"pyDRTtoolsgui=pyDRTtools.pyDRTtools_GUI:main",
-    ],
-    },
+    #],
+    #},
     include_package_data=True,
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
