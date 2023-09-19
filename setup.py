@@ -39,13 +39,13 @@ setuptools.setup(
     ],
     #packages=['pyDRTtools'], pyqt==5.15.7
     
-    install_requires = [
-        'cvxopt~=1.3',
-        'cvxpy>=1.3',
-        'scipy',
-        'numpy',
-        'scikit-learn',
-        'pyqt',
+    #install_requires = [
+       # 'cvxopt~=1.3',
+        #'cvxpy>=1.3',
+        #'scipy',
+        #'numpy',
+        #'scikit-learn',
+        #'pyqt',
         #'matplotlib',
         #'pandas',       
     ],
