@@ -11,7 +11,8 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from .pyDRTtools_layout import Ui_MainWindow
 #from .pyDRTtools_layout import Ui_MainWindow
-from pyDRTtools_runs import *
+#from pyDRTtools_runs import *
+from . import pyDRTtools_runs
 import matplotlib as mpl
 mpl.use("Qt5Agg")
 import matplotlib.pyplot as plt
