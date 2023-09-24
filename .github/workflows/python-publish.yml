@@ -28,7 +28,10 @@ jobs:
                  flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics  ## Linting operations
              #     
             - name: Build binary wheel and a source tarball
-              run: python setup.py sdist      # Execute setup file
+              run: |
+                 python setup.py sdist
+                 python -m build --sdist --wheel --outdir dist
+              #run: python setup.py sdist      # Execute setup file python -m build --sdist --wheel --outdir dist
             - name: Publish distribution to PYPI
               uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
               #pypa/gh-action-pypi-publish@master
