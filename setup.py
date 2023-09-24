@@ -29,7 +29,6 @@ dev_dependencies = [
     "setuptools~=65.5",  # For Setuptools.
     "build~=0.10",
     "flake8~=6.0",
-    "setuptools~=65.5",
 ]
 
 optional_dependencies = {  
