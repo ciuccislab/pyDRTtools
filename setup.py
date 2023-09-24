@@ -26,7 +26,6 @@ dependencies = [
 ]
 
 dev_dependencies = [
-    "setuptools~=65.5",  # For Setuptools.
     "build~=0.10",
     "flake8~=6.0",
 ]
@@ -44,7 +43,7 @@ if __name__ == "__main__":
         
     setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.64",
+    version = "0.2.8.65",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
