@@ -1064,10 +1064,10 @@ def compute_re_im_cv(log_lambda, A_re, A_im, Z_re, Z_im, M):
     lb = np.zeros([Z_re.shape[0]+1]) # + 1 if a resistor or an inductor is included in the DRT model
     bound_mat = np.eye(lb.shape[0]) 
     
-    # quadratic programming through cvxopt
-    H_re, c_re = quad_format(A_re, Z_re, M, lambda_value)
+    # quadratic programming through cvxopt  quad_format_separate
+    H_re, c_re = quad_format_separate(A_re, Z_re, M, lambda_value)
     gamma_ridge_re = cvxopt_solve_qpr(H_re, c_re, -bound_mat, lb)
-    H_im, c_im = quad_format(A_im, Z_im, M, lambda_value)
+    H_im, c_im = quad_format_separate(A_im, Z_im, M, lambda_value)
     gamma_ridge_im = cvxopt_solve_qpr(H_im, c_im, -bound_mat, lb)
     
     # stacking the resistance R and inductance L on top of gamma_ridge_im and gamma_ridge_re, repectively
