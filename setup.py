@@ -15,7 +15,7 @@ entry_points={
 
 dependencies = [
     "cvxopt~=1.3",  # cvxopt optimizer
-    "cvxpy>=1.3",
+    "cvxpy>=1.0.3.2",
     "requests~=2.28",  # Used to check package status on PyPI.
     "scipy==1.10.0",
     "numpy==1.24.1",
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.62",
+    version = "0.2.8.63",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
