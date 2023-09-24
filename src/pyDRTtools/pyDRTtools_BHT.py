@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 from scipy.stats import multivariate_normal as MVN
 
 # DRTtools related package
-from . import pyDRTtools_basics as gf
+import pyDRTtools_basics as gf
 
 
 """
