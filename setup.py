@@ -7,8 +7,7 @@ def readme():
             return f.read()
     except IOError:
         return ''
-
- entry_points={
+entry_points={
         "console_scripts": [
             "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:main",
         ],
@@ -46,7 +45,7 @@ if __name__ == "__main__":
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.59",
+    version = "0.2.8.60",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
