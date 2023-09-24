@@ -1,4 +1,5 @@
 import setuptools
+from os.path import exists, join
 
 def readme():
     try:
@@ -35,6 +36,13 @@ optional_dependencies = {
     "kvxopt": "kvxopt~=1.3",  
     "dev": dev_dependencies,
 }
+
+if __name__ == "__main__":
+    with open("requirements.txt", "w") as fp:
+        fp.write("\n".join(dependencies))
+    with open("dev-requirements.txt", "w") as fp:
+        fp.write("\n".join(dev_dependencies))
+
 
 setuptools.setup(
     name = "pyDRTtools",
