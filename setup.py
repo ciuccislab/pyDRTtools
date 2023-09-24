@@ -1,4 +1,5 @@
 import setuptools
+from os.path import exists, join
 
 def readme():
     try:
@@ -6,8 +7,7 @@ def readme():
             return f.read()
     except IOError:
         return ''
-
- entry_points={
+entry_points={
         "console_scripts": [
             "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:main",
         ],
@@ -15,8 +15,8 @@ def readme():
 
 dependencies = [
     "cvxopt~=1.3",  # cvxopt optimizer
-    "cvxpy>=1.3",
-    "requests~=2.28",  # Used to check package status on PyPI.
+    "cvxpy>=1.0.3.2",
+    "requests~=2.28",  
     "scipy==1.10.0",
     "numpy==1.24.1",
     "scikit-learn>=1.2.1",
@@ -25,20 +25,9 @@ dependencies = [
     "pandas==1.5.3",
 ]
 
-dev_dependencies = [
-    "setuptools~=65.5",  # For Setuptools.
-    "build~=0.10",
-    "flake8~=6.0",
-]
-
-optional_dependencies = {  
-    "kvxopt": "kvxopt~=1.3",  
-    "dev": dev_dependencies,
-}
-
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.59",
+    version = "0.2.8.67",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -55,8 +44,8 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/ciuccislab/pyDRTtools/issues",
     },
     entry_points=entry_points,
-    install_requires=dependencies,
-    extras_require=optional_dependencies,
+    #install_requires=dependencies,
+    #extras_require=optional_dependencies,
     python_requires = ">=3.4",
     
     classifiers = [
