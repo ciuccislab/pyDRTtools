@@ -16,11 +16,11 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 # DRTtools related package
-import pyDRTtools_basics as gf
+import .pyDRTtools_basics as gf
 import importlib
 importlib.reload(gf)
-import pyDRTtools_BHT as BHT
-from pyDRTtools_HMC import generate_tmg
+import .pyDRTtools_BHT as BHT
+from .pyDRTtools_HMC import generate_tmg
 
 class EIS_object(object):
     
