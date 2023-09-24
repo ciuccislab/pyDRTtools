@@ -43,7 +43,7 @@ if __name__ == "__main__":
         
     setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.65",
+    version = "0.2.8.66",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
