@@ -10,6 +10,7 @@ from numpy import log10, absolute, angle
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from pyDRTtools_layout import Ui_MainWindow
+#from .pyDRTtools_layout import Ui_MainWindow
 from pyDRTtools_runs import *
 import matplotlib as mpl
 mpl.use("Qt5Agg")

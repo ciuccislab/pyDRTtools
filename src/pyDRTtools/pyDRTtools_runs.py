@@ -20,7 +20,7 @@ import pyDRTtools_basics as gf
 import importlib
 importlib.reload(gf)
 import pyDRTtools_BHT as BHT
-from pyDRTtools_HMC import generate_tmg
+import pyDRTtools_HMC as generate_tmg
 
 class EIS_object(object):
     

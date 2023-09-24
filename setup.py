@@ -9,7 +9,7 @@ def readme():
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.20",
+    version = "0.2.8.56",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -22,7 +22,7 @@ setuptools.setup(
     },
     entry_points={
         "console_scripts": [
-            "pyDRTtoolsui=src.pyDRTtools_GUI:pyDRTtools_GUI",
+            "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:main",
         ],
     },
     classifiers = [
@@ -34,21 +34,21 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    #packages=['pyDRTtools'],
+    #packages=['pyDRTtools'], pyqt==5.15.7
     
-    install_requires = [
-        'cvxopt',
-        'pandas',
-        'scipy',
-        'numpy',
-        'scikit-learn',
-        'matplotlib',
-        'PyQt5',
-    ],
+    #install_requires = [
+        #'cvxopt~=1.3',
+        #'cvxpy>=1.3',
+        #'scipy',
+        #'numpy',
+        #'scikit-learn',
+        #'pyqt',
+        #'matplotlib',
+        #'pandas',       
+    #],
     include_package_data=True,
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
