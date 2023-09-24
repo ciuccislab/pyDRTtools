@@ -1,4 +1,2 @@
- setuptools~=65.5
  build~=0.10
  flake8~=6.0
- 
