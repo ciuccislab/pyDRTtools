@@ -17,13 +17,12 @@ dependencies = [
     "cvxopt~=1.3",  # cvxopt optimizer
     "cvxpy>=1.3",
     "requests~=2.28",  # Used to check package status on PyPI.
-    "scipy",
-    "numpy",
-    "scikit-learn",
-    "PyQt5",
-    "matplotlib",
-    "pandas",
-    "matplotlib",
+    "scipy==1.10.0",
+    "numpy==1.24.1",
+    "scikit-learn>=1.2.1",
+    "PyQt5==5.15.9",
+    "matplotlib==3.7.3",
+    "pandas==1.5.3",
 ]
 
 dev_dependencies = [
