@@ -72,7 +72,7 @@ class EIS_object(object):
     
     def plot_DRT(self): # plot the DRT result
         
-        gf.pretty_plot(4,4)
+        basics.pretty_plot(4,4)
         plt.rc('font', family='serif', size=15)
         plt.rc('xtick', labelsize=15)
         plt.rc('ytick', labelsize=15)
