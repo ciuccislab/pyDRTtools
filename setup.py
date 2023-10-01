@@ -9,7 +9,7 @@ def readme():
         return ''
 entry_points={
         "console_scripts": [
-            "pyDRTtoolsui=pyDRTtools.pyDRTtools_GUI:main",
+            "launchGUI=pyDRTtools.GUI:main",
         ],
     }
 

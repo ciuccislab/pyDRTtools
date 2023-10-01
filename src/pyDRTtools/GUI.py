@@ -9,23 +9,23 @@ import numpy as np
 from numpy import log10, absolute, angle
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
-from pyDRTtools_layout import Ui_MainWindow
+import layout 
 #from .pyDRTtools_layout import Ui_MainWindow
-from pyDRTtools_runs import *
+from runs import *
 import matplotlib as mpl
 mpl.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
-class pyDRTtools_GUI(QtWidgets.QMainWindow):
+class GUI(QtWidgets.QMainWindow):
     def __init__(self):
     
         # Initalize parent
         QtWidgets.QMainWindow.__init__(self)
         
         # Initalize GUI layout
-        self.ui = Ui_MainWindow()
+        self.ui = layout.Ui_MainWindow()
         self.ui.setupUi(self)
        
         # setting data to be initially none
@@ -545,7 +545,7 @@ class Figure_Canvas(FigureCanvas):
 if __name__ == "__main__": # starting the GUI when users run this file 
     
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = pyDRTtools_GUI()
+    MainWindow = GUI()
     MainWindow.show()
     sys.exit(app.exec_())
     

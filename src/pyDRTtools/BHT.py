@@ -10,7 +10,8 @@ from scipy.optimize import minimize
 from scipy.stats import multivariate_normal as MVN
 
 # DRTtools related package
-import pyDRTtools_basics as gf
+#from . import pyDRTtools_basics as gf
+import basics 
 
 
 """
@@ -22,7 +23,7 @@ Reference: J. Liu, T. H. Wan, F. Ciucci, A Bayesian view on the Hilbert transfor
 
 def compute_A_H_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2='impedance'):
     
-    out_A_re = gf.assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
+    out_A_re = basics.assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
     out_A_H_re = out_A_re[:,1:]
     
     return out_A_H_re
@@ -30,7 +31,7 @@ def compute_A_H_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', fl
 
 def compute_A_H_im(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2='impedance'):
     
-    out_A_im = gf.compute_A_im(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
+    out_A_im = basics.compute_A_im(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
     out_A_H_im = out_A_im[:,1:]
     
     return out_A_H_im
@@ -316,8 +317,8 @@ def HT_est(theta_0, Z_exp, freq_vec, tau_vec, Dn='D2', data_flag='impedance'):
     N_taus = tau_vec.size
 
     # compute the matrix $A = A_re + i A_im$
-    A_re = gf.compute_A_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
-    A_im = gf.compute_A_im(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
+    A_re = basics.compute_A_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
+    A_im = basics.compute_A_im(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
     
     # as well as the ones used for the Hilbert transform
     A_H_re = compute_A_H_re(freq_vec, tau_vec, 0, 'PWL', 'BHT', flag2=data_flag)
@@ -325,10 +326,10 @@ def HT_est(theta_0, Z_exp, freq_vec, tau_vec, Dn='D2', data_flag='impedance'):
 
     # compute the matrix L
     if Dn == 'D1': # first-order differentiation matrix
-        L = gf.assemble_M_1(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
+        L = basics.assemble_M_1(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
         
     else: # second-order differentiation matrix
-        L = gf.assemble_M_2(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
+        L = basics.assemble_M_2(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
 
     # estimates
     out_dict_real = HT_single_est(theta_0, Z_exp.real, A_re, A_H_im, L, N_freqs, N_taus)

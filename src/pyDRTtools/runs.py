@@ -16,11 +16,11 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 # DRTtools related package
-import pyDRTtools_basics as gf
+import basics 
 import importlib
-importlib.reload(gf)
-import pyDRTtools_BHT as BHT
-import pyDRTtools_HMC as generate_tmg
+importlib.reload(basics)
+import BHT 
+import HMC 
 
 class EIS_object(object):
     
@@ -138,17 +138,17 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.b_im = entry.Z_exp.imag
     
     # Step 1.2: compute epsilon
-    entry.epsilon = gf.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
+    entry.epsilon = basics.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
     
     # Step 1.3: compute A matrix
-    entry.A_re_temp = gf.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
-    entry.A_im_temp = gf.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    entry.A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    entry.A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
     
     # Step 1.4: compute M matrix
     if der_used == '1st order':
-        entry.M_temp = gf.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
     elif der_used == '2nd order':
-        entry.M_temp = gf.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
     
     # Step 2: conduct ridge regularization
     if data_used == 'Combined Re-Im Data': # select both parts of the impedance for the simple run
@@ -181,14 +181,14 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(10**-3) # initial guess for lambda
-        lambda_value = gf.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
 
         # recover the DRT using cvxpy or cvxopt if cvxpy fails
-        H_combined,c_combined = gf.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
+        H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_combined, c_combined) # using cvxpy
+            x = basics.cvxpy_solve_qp(H_combined, c_combined) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_combined, c_combined) # using cvxopt
+            x = basics.cvxopt_solve_qpr(H_combined, c_combined) # using cvxopt
     
         # prepare for HMC sampler, it will be used if needed
         entry.mu_Z_re = entry.A_re@x
@@ -230,14 +230,14 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(10**-3) # initial guess for lambda
-        lambda_value = gf.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         # recover the DRT using cvxpy or cvxopt if cvxpy fails
-        H_im, c_im = gf.quad_format_separate(entry.A_im, entry.b_im, entry.M, lambda_value)
+        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_im, c_im) # using cvxpy
+            x = basics.cvxpy_solve_qp(H_im, c_im) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_im, c_im) # using cvxopt
+            x = basics.cvxopt_solve_qpr(H_im, c_im) # using cvxopt
         
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
@@ -267,14 +267,14 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(10**-3) # initial guess for lambda
-        lambda_value = gf.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         # recover the DRT using cvxpy or cvxopt if cvxpy fails
-        H_re,c_re = gf.quad_format_separate(entry.A_re, entry.b_re, entry.M, lambda_value)
+        H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, lambda_value)
         try:
-            x = gf.cvxpy_solve_qp(H_re, c_re) # using cvxpy
+            x = basics.cvxpy_solve_qp(H_re, c_re) # using cvxpy
         except:
-            x = gf.cvxopt_solve_qpr(H_re, c_re) # using cvxopt
+            x = basics.cvxopt_solve_qpr(H_re, c_re) # using cvxopt
         
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
@@ -292,8 +292,8 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.Sigma_inv = (Sigma_inv+Sigma_inv.T)/2
     
     # test if the covariance matrix is positive definite
-    if (gf.is_PD(entry.Sigma_inv)==False):
-        entry.Sigma_inv = gf.nearest_PD(entry.Sigma_inv) # if not, use the nearest positive definite matrix
+    if (basics.is_PD(entry.Sigma_inv)==False):
+        entry.Sigma_inv = basics.nearest_PD(entry.Sigma_inv) # if not, use the nearest positive definite matrix
     
     L_Sigma_inv = np.linalg.cholesky(entry.Sigma_inv)
     entry.mu = np.linalg.solve(L_Sigma_inv, mu_numerator)
@@ -311,7 +311,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         entry.L, entry.R = x[0:2]
     
     entry.x = x[N_RL:]
-    entry.out_tau_vec, entry.gamma = gf.x_to_gamma(x[N_RL:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec, entry.gamma = basics.x_to_gamma(x[N_RL:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     entry.N_RL = N_RL 
     entry.method = 'simple'
     
@@ -357,15 +357,15 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
     initial_X = entry.x
     
     # Step 3: use generate_tmg from HMC_exact.py to sample the truncated Gaussian distribution
-    entry.Xs = generate_tmg(F, g, entry.Sigma, entry.mu, initial_X, cov=True, L=NMC_sample)
+    entry.Xs = HMC.generate_tmg(F, g, entry.Sigma, entry.mu, initial_X, cov=True, L=NMC_sample)
     entry.lower_bound = np.quantile(entry.Xs[:,501:],.005,axis=1)
     entry.upper_bound = np.quantile(entry.Xs[:,501:],.995,axis=1)
     entry.mean = np.mean(entry.Xs[:,501:],axis=1)    
     
     # Step 4: map array to gamma
-    entry.out_tau_vec,entry.lower_bound = gf.x_to_gamma(entry.lower_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
-    entry.out_tau_vec,entry.upper_bound = gf.x_to_gamma(entry.upper_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
-    entry.out_tau_vec,entry.mean = gf.x_to_gamma(entry.mean, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.lower_bound = basics.x_to_gamma(entry.lower_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.upper_bound = basics.x_to_gamma(entry.upper_bound, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mean = basics.x_to_gamma(entry.mean, entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     
     entry.method = 'credit'
 
@@ -392,9 +392,9 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
     N_taus = entry.tau.shape[0]
     
     # Step 1: construct the A matrix
-    entry.epsilon = gf.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
-    A_re_temp = gf.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
-    A_im_temp = gf.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    entry.epsilon = basics.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
+    A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
     
     # add resistance column and inductance column to A_re and A_im
     entry.A_re = np.append(np.ones([N_freqs,1]), A_re_temp, axis=1)
@@ -406,10 +406,10 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
     
     # Step 2: construct the M matrix
     if der_used == '1st order':
-        entry.M_temp = gf.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
     
     elif der_used == '2nd order':
-        entry.M_temp = gf.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
     entry.M = np.zeros((N_taus+1, N_taus+1))
     entry.M[1:,1:] = entry.M_temp 
     
@@ -453,7 +453,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
 
     # Step 5.1.5: mu_gamma estimation
     entry.mu_gamma_re = out_dict_real.get('mu_gamma')
-    entry.out_tau_vec,entry.mu_gamma_fine_re = gf.x_to_gamma(entry.mu_gamma_re[1:],entry.tau_fine,entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mu_gamma_fine_re = basics.x_to_gamma(entry.mu_gamma_re[1:],entry.tau_fine,entry.tau, entry.epsilon, rbf_type)
     
     # Step 5.2: Imaginary part
     
@@ -477,7 +477,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
 
     # Step 5.2.5: mu_gamma estimation
     entry.mu_gamma_im = out_dict_imag.get('mu_gamma')
-    entry.out_tau_vec,entry.mu_gamma_fine_im = gf.x_to_gamma(entry.mu_gamma_im[1:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
+    entry.out_tau_vec,entry.mu_gamma_fine_im = basics.x_to_gamma(entry.mu_gamma_im[1:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     
     # Step 6: plot the fits
     entry.mu_Z_H_re_agm = entry.mu_R_inf + entry.mu_Z_H_re
@@ -546,7 +546,7 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
         ub_list[n] = ub
         
         # residual function to minimize for each DRT peak
-        residual_fc = lambda p: np.linalg.norm(gf.gauss_fct(p, entry.out_tau_vec, 1) - diff_gamma) ** 2
+        residual_fc = lambda p: np.linalg.norm(basics.gauss_fct(p, entry.out_tau_vec, 1) - diff_gamma) ** 2
         
         # initial guesses for the parameter values for each DRT peak
         index_diff_peak = np.argmax(diff_gamma)
@@ -561,7 +561,7 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
         # optimized p values and optimized fit of each DRT peak
         out_fit = minimize(residual_fc, p_0, bounds=list(zip(lb, ub)), method='L-BFGS-B', options=options)
         p_fit = out_fit.x
-        gamma_fit = gf.gauss_fct(p_fit, entry.out_tau_vec, 1)
+        gamma_fit = basics.gauss_fct(p_fit, entry.out_tau_vec, 1)
         
         # save the n-th p values
         p_fit_list[n] = p_fit
@@ -584,14 +584,14 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
     p_fit_ini = np.concatenate([p_fit_list[k] for k in range(entry.N_peaks)])
     
     # residual function to minimize
-    residual_fct_fit = lambda p: np.linalg.norm(gf.gauss_fct(p, entry.out_tau_vec, entry.N_peaks) - entry.gamma) ** 2
+    residual_fct_fit = lambda p: np.linalg.norm(basics.gauss_fct(p, entry.out_tau_vec, entry.N_peaks) - entry.gamma) ** 2
     
     # minimization
     out_fit_tot = minimize(residual_fct_fit, p_fit_ini, method='L-BFGS-B', options=options, bounds = bnds_list)
     
     # optimized p values and optimized fit
     p_fit_tot = out_fit_tot.x
-    entry.gamma_fit_tot = gf.gauss_fct(p_fit_tot, entry.out_tau_vec, entry.N_peaks)
+    entry.gamma_fit_tot = basics.gauss_fct(p_fit_tot, entry.out_tau_vec, entry.N_peaks)
     
     if peak_method == 'separate': # separate fit of the DRT
     
