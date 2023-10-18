@@ -25,7 +25,7 @@ pyDRTtools is freely available under the MIT license from this site.
 To install and run pyDRTtools, you need: Python >= 3
 
 **Installation details**
-***Create a virtual environment**
+#### Create a virtual environment
 ```
 conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn, ipython
 ```
@@ -33,7 +33,7 @@ conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn, i
 ```
 conda activate DRT
 ```
-### Install dependencies
+#### Install dependencies
 ```
 pip install cvxopt cvxpy PyQt5
 ```
