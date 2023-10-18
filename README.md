@@ -29,19 +29,19 @@ To install and run pyDRTtools, you need: Python >= 3
 ```
 conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn, ipython
 ```
-*** Activate virtual environment
+#### Activate virtual environment
 ```
 conda activate DRT
 ```
-## Install dependencies
+### Install dependencies
 ```
 pip install cvxopt cvxpy PyQt5
 ```
-***Install pyDRTtools via “pip”***
+#### Install pyDRTtools via “pip”
 ```
 pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.76
 ```
-***Activate ipython command line and run the following to launch the GUI***
+#### Activate ipython command line and run the following to launch the GUI
 ```
 from pyDRTtools.GUI import launch_gui
 launch_gui()
