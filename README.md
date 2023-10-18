@@ -16,17 +16,40 @@ pyDRTtools is a Python GUI that analyzes EIS data via the DRT model. pyDRTtools 
 
 Hopefully, by now you are inclined to think that this toolbox may be useful to the interpretation of your EIS data. If you are interested, you will find an explanation of the toolbox's capabilities it in the user's guide as well as in the references below.
 
-# **Distribution and Release Information**
+## Distribution and Release Information
 
 pyDRTtools is freely available under the MIT license from this site.
 
-# **System requirements**
+**System requirements**
 
 To install and run pyDRTtools, you need: Python >= 3
 
+**Installation details**
+For details about the installation procedures, you can consult the user manual [manual](manual)
+#### Create a virtual environment
+```
+conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn, ipython
+```
+#### Activate virtual environment
+```
+conda activate DRT
+```
+#### Install dependencies
+```
+pip install cvxopt cvxpy PyQt5
+```
+#### Install pyDRTtools via “pip”
+```
+pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.76
+```
+#### Activate ipython command line and run the following to launch the GUI
+```
+from pyDRTtools.GUI import launch_gui
+launch_gui()
+```
 Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
 
-# **How to cite this work?**
+**How to cite this work?**
 
 **[1] Wan, T. H., Saccoccio, M., Chen, C., & Ciucci, F. (2015). Influence of the discretization methods on the distribution of relaxation times deconvolution: implementing radial basis functions with DRTtools. Electrochimica Acta, 184, 483-499.**
 
