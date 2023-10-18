@@ -33,7 +33,7 @@ conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn, i
 ```
 conda activate DRT
 ```
-***Install dependencies***
+## Install dependencies
 ```
 pip install cvxopt cvxpy PyQt5
 ```
