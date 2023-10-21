@@ -7,6 +7,7 @@ def readme():
             return f.read()
     except IOError:
         return ''
+
 entry_points={
         "console_scripts": [
             "launchGUI=pyDRTtools.cli:main",
