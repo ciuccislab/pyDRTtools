@@ -1,11 +1,12 @@
 import click
-from pyDRTtools.GUI import launch_gui
+from . import GUI
 
 @click.command()
-def launch():
+def main():
     """Launch the GUI."""
-    launch_gui()
+    GUI.launch_gui()
 
 if __name__ == "__main__":
-    launch()
+    main()
+
 
