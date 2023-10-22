@@ -31,19 +31,19 @@ For details about the installation procedures, you can consult the user manual [
 ```
 conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn ipython
 ```
-#### Activate virtual environment
+***Activate virtual environment***
 ```
 conda activate DRT
 ```
-#### Install dependencies
+***Install dependencies***
 ```
-pip install cvxopt cvxpy PyQt5
+pip install cvxopt PyQt5
 ```
-#### Install pyDRTtools via “pip”
+***Install pyDRTtools via “pip”***
 ```
 pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.78
 ```
-#### Activate ipython command line and run the following to launch the GUI
+***Activate ipython command line and run the following to launch the GUI***
 ```
 !launchGUI
 ```
