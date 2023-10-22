@@ -24,7 +24,7 @@ pyDRTtools is freely available under the MIT license from this site.
 
 To install and run pyDRTtools, you need: Python >= 3
 
-**Installation details**
+***Installation details***
 
 For details about the installation procedures, you can consult the user manual [manual](manual)
 
