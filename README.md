@@ -42,7 +42,7 @@ pip install cvxopt cvxpy PyQt5
 ```
 ***Install pyDRTtools via “pip”***
 ```
-pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.78
+pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.79
 ```
 ***Activate ipython command line and run the following to launch the GUI***
 ```
