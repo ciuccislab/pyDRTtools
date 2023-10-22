@@ -28,7 +28,7 @@ dependencies = [
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.78",
+    version = "0.2.8.79",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -60,7 +60,9 @@ setuptools.setup(
           
     ],
     packages=['pyDRTtools'],
+    include_package_data=True,
+    package_data={'pyDRTtools': ['EIS data/*']},  # Specify package data
     #packages = setuptools.find_packages(where="pyDRTtools"),
     #package_dir={"": "pyDRTtools"},
-    include_package_data=True,
+    #include_package_data=True,
 )
