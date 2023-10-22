@@ -37,7 +37,7 @@ conda activate DRT
 ```
 ***Install dependencies***
 ```
-pip install cvxopt PyQt5
+pip install cvxopt cvxpy PyQt5
 ```
 ***Install pyDRTtools via “pip”***
 ```
