@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: Build_Dist_EJ.
+name: Build_Dist_Ek
 on:
   workflow_dispatch:
 jobs:
