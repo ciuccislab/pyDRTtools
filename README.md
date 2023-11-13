@@ -30,7 +30,10 @@ For details about the installation procedures, you can consult the user manual [
 
 ***Create a virtual environment***
 ```
-conda create --name DRT python=3.9 pip ipython pandas matplotlib scikit-learn ipython
+conda create --name DRT pip ipython pandas matplotlib scikit-learn spyder
+
+pip install cvxopt jupyterlab PyQt5
+pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.79
 ```
 ***Activate virtual environment***
 ```
