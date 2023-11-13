@@ -28,7 +28,7 @@ To install and run pyDRTtools, you need: Python >= 3
 
 For details about the installation procedures, you can consult the user manual [manual](manual)
 
-***Create a virtual environment***
+***Run the following on anaconda prompt:***
 ```
 conda create --name DRT pip ipython pandas matplotlib scikit-learn spyder
 conda activate DRT
