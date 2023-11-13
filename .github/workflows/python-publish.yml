@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: Build_Dist_Ei.
+name: Build_Dist_EJ.
 on:
   workflow_dispatch:
 jobs:
@@ -21,7 +21,7 @@ jobs:
               run: |
                  python -m pip install --upgrade pip
                  pip install flake8
-                 pip install cvxopt cvxpy matplotlib PyQt5 pandas scipy numpy scikit-learn wheel 
+                 pip install cvxopt matplotlib PyQt5 pandas scipy numpy scikit-learn wheel 
                  #pip install -r requirement.txt  ### new code addded
                  # Use flake8 to wrap source code into package/ python library
             - name: Lint with flake8
