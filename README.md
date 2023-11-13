@@ -35,19 +35,7 @@ conda create --name DRT pip ipython pandas matplotlib scikit-learn spyder
 pip install cvxopt jupyterlab PyQt5
 pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.79
 ```
-***Activate virtual environment***
-```
-conda activate DRT
-```
-***Install dependencies***
-```
-pip install cvxopt cvxpy PyQt5
-```
-***Install pyDRTtools via “pip”***
-```
-pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.79
-```
-***Activate ipython command line and run the following to launch the GUI***
+***ipython***
 ```
 !launchGUI
 ```
