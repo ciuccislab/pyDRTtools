@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Ting Hei Wan, Adeleke Maradesa, Baptiste Py'
-__date__ = '20th August 2023'
+__date__ = '13th November 2023'
 
 """
     Several Python packages are required, namely numpy, pandas, math, scipy, and matplotlib.
@@ -15,7 +15,7 @@ from math import pi
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
-# DRTtools related package
+# pyDRTtools related package
 from . import basics 
 import importlib
 importlib.reload(basics)
@@ -133,10 +133,9 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     # Step 1.1: define the optimization bounds
     N_freqs = entry.freq.shape[0]
     N_taus = entry.tau.shape[0]
-
+    ###
     entry.b_re = entry.Z_exp.real
     entry.b_im = entry.Z_exp.imag
-    
     # Step 1.2: compute epsilon
     entry.epsilon = basics.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
     
@@ -183,13 +182,13 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         log_lambda_0 = log(10**-3) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
 
-        # recover the DRT using cvxpy or cvxopt if cvxpy fails
+        # recover the DRT using cvxopt
         H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
-        try:
-            x = basics.cvxpy_solve_qp(H_combined, c_combined) # using cvxpy
-        except:
-            x = basics.cvxopt_solve_qpr(H_combined, c_combined) # using cvxopt
-    
+        ## Enforce positivity constraint
+        lb = np.zeros([entry.b_re.shape[0]+1]) 
+        bound_mat = np.eye(lb.shape[0])
+        ###
+        x = basics.cvxopt_solve_qpr(H_combined, c_combined,-bound_mat,lb) # using cvxopt
         # prepare for HMC sampler, it will be used if needed
         entry.mu_Z_re = entry.A_re@x
         entry.mu_Z_im = entry.A_im@x
@@ -232,13 +231,16 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         log_lambda_0 = log(10**-3) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
-        # recover the DRT using cvxpy or cvxopt if cvxpy fails
-        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, lambda_value)
-        try:
-            x = basics.cvxpy_solve_qp(H_im, c_im) # using cvxpy
-        except:
-            x = basics.cvxopt_solve_qpr(H_im, c_im) # using cvxopt
+        ##
+        #### Positivity Constraints
+        ##
+        lb = np.zeros([entry.b_re.shape[0]+1]) 
+        bound_mat = np.eye(lb.shape[0])
         
+        # recover the DRT using cvxopt
+        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, lambda_value)
+
+        x = basics.cvxopt_solve_qpr(H_im, c_im,-bound_mat,lb) # using cvxopt
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
         entry.mu_Z_im = entry.A_im@x
@@ -269,13 +271,13 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         log_lambda_0 = log(10**-3) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
-        # recover the DRT using cvxpy or cvxopt if cvxpy fails
+        # recover the DRT using cvxopt 
         H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, lambda_value)
-        try:
-            x = basics.cvxpy_solve_qp(H_re, c_re) # using cvxpy
-        except:
-            x = basics.cvxopt_solve_qpr(H_re, c_re) # using cvxopt
-        
+        ## Enforce negativity constraint
+        lb = np.zeros([entry.b_re.shape[0]+1]) 
+        bound_mat = np.eye(lb.shape[0])
+        # recovered DRT
+        x = basics.cvxopt_solve_qpr(H_re, c_re, -bound_mat,lb) # using cvxopt
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
         entry.mu_Z_im = entry.A_im@x       

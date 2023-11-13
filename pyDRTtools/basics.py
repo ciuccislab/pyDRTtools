@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Ting Hei Wan, Baptiste Py, Adeleke Maradesa'
 
-__date__ = '20th August 2023'
+__date__ = '13th November, 2023'
 
 
 import numpy as np
@@ -12,7 +12,7 @@ from scipy.optimize import fsolve, minimize
 from sklearn.model_selection import KFold
 from numpy.linalg import norm, cholesky
 from scipy.linalg import toeplitz
-import cvxpy as cp
+# import cvxpy as cp
 import cvxopt
 from numpy import *
 
@@ -749,28 +749,28 @@ def quad_format_combined(A_re, A_im, Z_re, Z_im, M, lambda_value):
     return H, c
 
 
-def cvxpy_solve_qp(H, c):
+# def cvxpy_solve_qp(H, c):
 
-    """ 
-       This function uses cvxpy to minimize the quadratic problem 0.5*x^T*H*x + c^T*x under the non-negativity constraint.
-       Inputs: 
-           H: matrix
-           c: vector
-        Output: 
-           Vector solution of the aforementioned problem
-    """
+#     """ 
+#        This function uses cvxpy to minimize the quadratic problem 0.5*x^T*H*x + c^T*x under the non-negativity constraint.
+#        Inputs: 
+#            H: matrix
+#            c: vector
+#         Output: 
+#            Vector solution of the aforementioned problem
+#     """
     
-    N_out = c.shape[0]
-    x = cp.Variable(shape = N_out, value = np.ones(N_out))
-    h = np.zeros(N_out)
+#     N_out = c.shape[0]
+#     x = cp.Variable(shape = N_out, value = np.ones(N_out))
+#     h = np.zeros(N_out)
     
-    prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, H) + c@x), [x >= h])
-    prob.solve(verbose = True, eps_abs = 1E-10, eps_rel = 1E-10, sigma = 1.00e-08, 
-               max_iter = 200000, eps_prim_inf = 1E-5, eps_dual_inf = 1E-5)
+#     prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, H) + c@x), [x >= h])
+#     prob.solve(verbose = True, eps_abs = 1E-10, eps_rel = 1E-10, sigma = 1.00e-08, 
+#                max_iter = 200000, eps_prim_inf = 1E-5, eps_dual_inf = 1E-5)
 
-    gamma = x.value
+#     gamma = x.value
     
-    return gamma
+#     return gamma
 
 
 def cvxopt_solve_qpr(P, q, G=None, h=None, A=None, b=None):
