@@ -33,7 +33,7 @@ For details about the installation procedures, you can consult the user manual [
 conda create --name DRT pip ipython pandas matplotlib scikit-learn spyder
 
 pip install cvxopt jupyterlab PyQt5
-pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.79
+pip install -i https://test.pypi.org/simple/ pyDRTtools==0.2.8.80
 ```
 ***ipython***
 ```
