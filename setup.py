@@ -16,7 +16,6 @@ entry_points={
 
 dependencies = [
     "cvxopt~=1.3",  # cvxopt optimizer
-    "cvxpy>=1.0.3.2",
     "requests~=2.28",  
     "scipy==1.10.0",
     "numpy==1.24.1",
@@ -28,7 +27,7 @@ dependencies = [
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.8.80",
+    version = "0.2.8.81",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -43,7 +42,7 @@ setuptools.setup(
     entry_points=entry_points,
     #install_requires=dependencies,
     install_requires=[
-		'click'],
+		'click', 'cvxopt~=1.3'],
     python_requires = ">=3",
     
     classifiers = [
