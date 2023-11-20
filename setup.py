@@ -42,7 +42,7 @@ setuptools.setup(
     entry_points=entry_points,
     #install_requires=dependencies,
     install_requires=[
-		'click', 'cvxopt~=1.3','spyder','cvxpy','PyQt5'],
+		'click', 'cvxopt~=1.3','spyder','cvxpy','PyQt5','jupyterlab','scikit-learn','ipython','matplotlib','pandas'],
     python_requires = ">=3",
     
     classifiers = [
