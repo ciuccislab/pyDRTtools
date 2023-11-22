@@ -11,7 +11,7 @@ pyDRTtools is a Python GUI that analyzes EIS data via the DRT model. pyDRTtools 
 - several options for optimizing the estimation of the DRT
 
 - a sampler that allows you to determine the credible intervals of your DRT
-- 
+  
 - optimal selection of the regularization parameter
 
 - Hilbert-transform subroutines that allow you to assess and score the quality of your data
