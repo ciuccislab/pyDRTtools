@@ -4,7 +4,7 @@
 # Connect to the PYPI
 # documentation for pyDRTtools
 
-name: Build_Dist_y9
+name: Build_Dist_a1
 on:
   workflow_dispatch:
 jobs:
