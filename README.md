@@ -44,6 +44,7 @@ Detailed installation instructions are available in the DRT toolbox user's guide
 **How to cite this work?**
 
 Refer to the GitHub repository (https://github.com/ciuccislab/pyDRTtools) so that you can cite each function appropriately.
+
 **How to get support?**
 
 Just write to francesco.ciucci@ust.hk or francesco.ciucci@uni-bayreuth.de
