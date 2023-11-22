@@ -27,7 +27,7 @@ dependencies = [
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.0.87",
+    version = "0.2.0.88",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
@@ -42,7 +42,7 @@ setuptools.setup(
     entry_points=entry_points,
     #install_requires=dependencies,
     install_requires=[
-		'click', 'cvxopt','jupyterlab','ipython'],
+		'click','jupyterlab','ipython'],
     python_requires = ">=3",
     
     classifiers = [
