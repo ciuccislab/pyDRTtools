@@ -47,7 +47,7 @@ Detailed installation instructions are available in the DRT toolbox user's guide
 
 Refer to the GitHub repository (https://github.com/ciuccislab/pyDRTtools) so that you can cite each function appropriately.
 
-*[1] Wan, T. H., Saccoccio, M., Chen, C., & Ciucci, F. (2015). Influence of the discretization methods on the distribution of relaxation times deconvolution: implementing radial basis functions with DRTtools. Electrochimica Acta, 184, 483-499.*
+[1] Wan, T. H., Saccoccio, M., Chen, C., & Ciucci, F. (2015). Influence of the discretization methods on the distribution of relaxation times deconvolution: implementing radial basis functions with DRTtools. Electrochimica Acta, 184, 483-499.*
 
 Link: https://doi.org/10.1016/j.electacta.2015.09.097
 
