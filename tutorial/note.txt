@@ -1,5 +1,0 @@
-This notebook provides a tutorial on importing various modules from pyDRTtools. It covers the following aspects:
-
-1. Creating an instance of a class.
-2. Loading data.
-3. Generating results using the imported modules.
