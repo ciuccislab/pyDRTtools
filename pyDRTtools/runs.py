@@ -184,8 +184,8 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
 
         # recover the DRT using cvxopt
         H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
-        ## Enforce positivity constraint
-        lb = np.zeros([entry.b_re.shape[0]+1]) 
+        ## Enforce positivity constraint  ## N_RL
+        lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
         ###
         x = basics.cvxopt_solve_qpr(H_combined, c_combined,-bound_mat,lb) # using cvxopt
@@ -232,8 +232,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         ##
-        #### Positivity Constraints
-        ##    lb = np.zeros([entry.b_re.shape[0]+N_RL]).   np.zeros(entry.b_re.shape[0]+1)
+        # enforce positivity Constraints
         
         lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
