@@ -184,7 +184,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
 
         # recover the DRT using cvxopt
         H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
-        ## Enforce positivity constraint  ## N_RL
+        # enforce positivity constraint # N_RL
         lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
         ###
@@ -232,8 +232,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         ##
-        # enforce positivity Constraints
-        
+        # enforce positivity constraints
         lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
         
@@ -274,8 +273,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         # recover the DRT using cvxopt 
         H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, lambda_value)
         
-        ## Enforce negativity constraint   
-        # np.zeros([entry.b_re.shape[0]+1])
+        ## enforce negativity constraint   
         
         lb = np.zeros([entry.b_re.shape[0]+N_RL])  
         bound_mat = np.eye(lb.shape[0])
