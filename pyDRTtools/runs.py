@@ -233,8 +233,9 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         ##
         #### Positivity Constraints
-        ##
-        lb = np.zeros([entry.b_re.shape[0]+1]) 
+        ##    lb = np.zeros([entry.b_re.shape[0]+N_RL]).   np.zeros(entry.b_re.shape[0]+1)
+        
+        lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
         
         # recover the DRT using cvxopt
