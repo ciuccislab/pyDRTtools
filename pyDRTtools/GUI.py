@@ -111,12 +111,13 @@ class GUI(QtWidgets.QMainWindow):
         induct_used = int(self.ui.induct_choice.currentIndex())
         der_used = str(self.ui.der_choice.currentText())
         cv_type = str(self.ui.lambda_choice.currentText())
+        reg_param = float(self.ui.reg_param_entry.text())
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text())
         
         # we perform the computation
         self.data = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
-                                der_used = der_used, cv_type = cv_type, shape_control = shape_control, coeff = coeff)
+                                der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
         self.plotting_callback('DRT_data')
 
     def bayesian_run_callback(self): # callback for Bayesian regularization
@@ -130,13 +131,14 @@ class GUI(QtWidgets.QMainWindow):
         induct_used = int(self.ui.induct_choice.currentIndex())
         der_used = str(self.ui.der_choice.currentText())
         cv_type = str(self.ui.lambda_choice.currentText())
+        reg_param = float(self.ui.reg_param_entry.text())
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text())
         sample_number = int(self.ui.sample_no_entry.text())
         
         # we perform the computation
         self.data = Bayesian_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used, 
-                                 der_used = der_used, cv_type = cv_type, shape_control = shape_control, 
+                                 der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control,
                                  coeff = coeff, NMC_sample = sample_number)        
         self.plotting_callback('DRT_data')
         
@@ -166,6 +168,7 @@ class GUI(QtWidgets.QMainWindow):
         induct_used = int(self.ui.induct_choice.currentIndex())
         der_used = str(self.ui.der_choice.currentText())
         cv_type = str(self.ui.lambda_choice.currentText())
+        reg_param = float(self.ui.reg_param_entry.text())
         shape_control = str(self.ui.shape_control_choice.currentText())
         coeff = float(self.ui.FWHM_entry.text())
         peak_method = str(self.ui.peak_method_choice.currentText())
@@ -173,7 +176,7 @@ class GUI(QtWidgets.QMainWindow):
         
         # we perform the computation
         self.data = peak_analysis(self.data,rbf_type = rbf_type, data_used = data_used, induct_used = induct_used, 
-                        der_used = der_used, cv_type = cv_type, shape_control = shape_control, coeff = coeff, peak_method=peak_method, N_peaks=N_peaks)
+                        der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff, peak_method=peak_method, N_peaks=N_peaks)
         self.plotting_callback('DRT_data')
         
     def plotting_callback(self, plot_to_show):
