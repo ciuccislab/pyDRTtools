@@ -1,3 +1,7 @@
+__authors__ = 'Francesco Ciucci, Adeleke Maradesa'
+
+__date__ = '16th Jan., 2024'
+
 import setuptools
 from os.path import exists, join
 
