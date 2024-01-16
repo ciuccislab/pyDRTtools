@@ -1,3 +1,8 @@
+__authors__ = 'Francesco Ciucci, Adeleke Maradesa'
+
+__date__ = '16th Jan., 2024'
+
+
 import click
 from . import GUI
 
