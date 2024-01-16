@@ -1247,12 +1247,18 @@ def optimal_lambda(A_re, A_im, Z_re, Z_im, M, log_lambda_0, cv_type):
         print('re-im')
         
     # k-fold 
-    else: #elif cv_type == 'kf':  
+    elif cv_type == 'kf':  
         res = minimize(compute_kf_cv, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
         print('kf') 
     
+    # custom value
+    else:
+        lambda_value = exp(log_lambda_0)
+        print('custom')
+        return lambda_value
+
     lambda_value = exp(res.x)
-    
+
     return lambda_value
 
 # Part 3: Peak analysis

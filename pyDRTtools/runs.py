@@ -111,7 +111,7 @@ class EIS_object(object):
         plt.show()
 
 
-def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', shape_control = 'FWHM Coefficient', coeff = 0.5):
+def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5):
     
     """
     This function enables to compute the DRT using ridge regression (also known as Tikhonov regression)
@@ -123,7 +123,8 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         data_used: part of the EIS spectrum used for regularization
         induct_used: treatment of the inductance part
         der_used: order of the derivative considered for the M matrix
-        cv_type: regularization method used to select the regularization parameter for ridge regression 
+        cv_type: regularization method used to select the regularization parameter for ridge regression
+        reg_param: regularization parameter applied when "custom" is used for cv_type 
         shape_control: option for controlling the shape of the radial basis function (RBF) 
         coeff: magnitude of the shape control
     """
@@ -179,7 +180,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             entry.M[N_RL:,N_RL:] = entry.M_temp
         
         # optimally select the regularization level
-        log_lambda_0 = log(10**-3) # initial guess for lambda
+        log_lambda_0 = log(reg_param) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
 
         # recover the DRT using cvxopt
@@ -228,7 +229,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             entry.M[N_RL:,N_RL:] = entry.M_temp
         
         # optimally select the regularization level
-        log_lambda_0 = log(10**-3) # initial guess for lambda
+        log_lambda_0 = log(reg_param) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         ##
@@ -267,7 +268,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         entry.M[N_RL:,N_RL:] = entry.M_temp
         
         # optimally select the regularization level
-        log_lambda_0 = log(10**-3) # initial guess for lambda
+        log_lambda_0 = log(reg_param) # initial guess for lambda
         lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         # recover the DRT using cvxopt 
@@ -321,7 +322,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     return entry
 
 
-def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
+def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
     
     """
     This function enables to recover the DRT with its uncertainty in a Bayesian framework. 
@@ -334,14 +335,15 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
         data_used: part of the EIS spectrum used for regularization
         induct_used: treatment of the inductance part
         der_used: order of the derivative considered for the M matrix
-        cv_type: regularization method used to select the regularization parameter for ridge regression 
+        cv_type: regularization method used to select the regularization parameter for ridge regression
+        reg_param: regularization parameter applied when "custom" is used for cv_type  
         shape_control: option for controlling the shape of the radial basis function (RBF) 
         coeff: magnitude of the shape control
         NMC_sample: number of samples for the HMC sampler
     """
     
-    simple_run(entry, rbf_type, data_used, induct_used, 
-               der_used, cv_type, shape_control, coeff) 
+    simple_run(entry, rbf_type=rbf_type, data_used=data_used, induct_used = induct_used, 
+               der_used=der_used, cv_type=cv_type, reg_param=reg_param, shape_control = shape_control, coeff=coeff) 
 
     # using HMC sampler to sample the truncated Gaussian distribution
     
@@ -500,7 +502,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
 
 ## For peak analysis
 
-def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', shape_control = 'FWHM Coefficient', coeff = 0.5, peak_method = 'separate', N_peaks=1):
+def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, peak_method = 'separate', N_peaks=1):
      
     """
        This function enables to identify the DRT peaks.
@@ -510,7 +512,8 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
             data_used: part of the EIS spectrum used for regularization
             induct_used: treatment of the inductance part
             der_used: order of the derivative considered for the M matrix
-            cv_type: regularization method used to select the regularization parameter for ridge regression 
+            cv_type: regularization method used to select the regularization parameter for ridge regression
+            reg_param: regularization parameter applied when "custom" is used for cv_type  
             shape_control: option for controlling the shape of the radial basis function (RBF) 
             coeff: magnitude of the shape control
             N_peaks: desired number of peaks
@@ -520,7 +523,8 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
     # Step 1: define the necessary quantities before the subsequent optimizations
     
     entry.N_peaks = np.int_(N_peaks)
-    simple_run(entry, rbf_type, data_used, induct_used, der_used, cv_type, shape_control, coeff)
+    simple_run(entry, rbf_type=rbf_type, data_used=data_used, induct_used = induct_used, 
+               der_used=der_used, cv_type=cv_type, reg_param=reg_param, shape_control = shape_control, coeff=coeff) 
     
     # upper and lower log tau values
     log_tau_min = np.min(np.log(entry.out_tau_vec))
