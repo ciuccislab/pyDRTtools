@@ -123,7 +123,8 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         data_used: part of the EIS spectrum used for regularization
         induct_used: treatment of the inductance part
         der_used: order of the derivative considered for the M matrix
-        cv_type: regularization method used to select the regularization parameter for ridge regression 
+        cv_type: regularization method used to select the regularization parameter for ridge regression
+        reg_param: regularization parameter applied when "custom" is used for cv_type 
         shape_control: option for controlling the shape of the radial basis function (RBF) 
         coeff: magnitude of the shape control
     """
@@ -334,7 +335,8 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
         data_used: part of the EIS spectrum used for regularization
         induct_used: treatment of the inductance part
         der_used: order of the derivative considered for the M matrix
-        cv_type: regularization method used to select the regularization parameter for ridge regression 
+        cv_type: regularization method used to select the regularization parameter for ridge regression
+        reg_param: regularization parameter applied when "custom" is used for cv_type  
         shape_control: option for controlling the shape of the radial basis function (RBF) 
         coeff: magnitude of the shape control
         NMC_sample: number of samples for the HMC sampler
@@ -510,7 +512,8 @@ def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data
             data_used: part of the EIS spectrum used for regularization
             induct_used: treatment of the inductance part
             der_used: order of the derivative considered for the M matrix
-            cv_type: regularization method used to select the regularization parameter for ridge regression 
+            cv_type: regularization method used to select the regularization parameter for ridge regression
+            reg_param: regularization parameter applied when "custom" is used for cv_type  
             shape_control: option for controlling the shape of the radial basis function (RBF) 
             coeff: magnitude of the shape control
             N_peaks: desired number of peaks
