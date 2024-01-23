@@ -181,10 +181,10 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(reg_param) # initial guess for lambda
-        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
 
         # recover the DRT using cvxopt
-        H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, lambda_value)
+        H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, entry.lambda_value)
         # enforce positivity constraint # N_RL
         lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
         bound_mat = np.eye(lb.shape[0])
@@ -200,7 +200,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         sigma_re_im = np.std(np.concatenate([entry.res_re,entry.res_im]))
         inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
     
-        Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.A_im.T@inv_V@entry.A_im) + (lambda_value/sigma_re_im**2)*entry.M
+        Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
         mu_numerator = entry.A_re.T@inv_V@entry.b_re + entry.A_im.T@inv_V@entry.b_im
         
     elif data_used == 'Im Data': # select the imaginary part of the impedance for the simple run
@@ -230,7 +230,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(reg_param) # initial guess for lambda
-        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         ##
         # enforce positivity constraints
@@ -238,7 +238,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         bound_mat = np.eye(lb.shape[0])
         
         # recover the DRT using cvxopt
-        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, lambda_value)
+        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, entry.lambda_value)
 
         x = basics.cvxopt_solve_qpr(H_im, c_im,-bound_mat,lb) # using cvxopt
         # prepare for HMC sampler
@@ -251,7 +251,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         sigma_re_im = np.std(entry.res_im)
         inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
         
-        Sigma_inv = (entry.A_im.T@inv_V@entry.A_im) + (lambda_value/sigma_re_im**2)*entry.M
+        Sigma_inv = (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
         mu_numerator = entry.A_im.T@inv_V@entry.b_im
         
     elif data_used == 'Re Data': # select the real part of the impedance for the simple run
@@ -269,10 +269,10 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(reg_param) # initial guess for lambda
-        lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
         
         # recover the DRT using cvxopt 
-        H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, lambda_value)
+        H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, entry.lambda_value)
         
         ## enforce negativity constraint   
         
@@ -290,7 +290,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         sigma_re_im = np.std(entry.res_re)
         inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
         
-        Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (lambda_value/sigma_re_im**2)*entry.M
+        Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.lambda_value/sigma_re_im**2)*entry.M
         mu_numerator = entry.A_re.T@inv_V@entry.b_re
 
     entry.Sigma_inv = (Sigma_inv+Sigma_inv.T)/2
