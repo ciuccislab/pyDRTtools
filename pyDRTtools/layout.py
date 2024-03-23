@@ -549,7 +549,7 @@ class Ui_MainWindow(object):
         self.data_used_choice.setItemText(0, _translate("MainWindow", "Combined Re-Im Data"))
         self.data_used_choice.setItemText(1, _translate("MainWindow", "Re Data"))
         self.data_used_choice.setItemText(2, _translate("MainWindow", "Im Data"))
-        self.lambda_choice_label.setText(_translate("MainWindow", "Regularization Method"))
+        self.lambda_choice_label.setText(_translate("MainWindow", "Parameter Selection Method"))
         self.lambda_choice.setCurrentText(_translate("MainWindow", "custom"))
         self.lambda_choice.setItemText(0, _translate("MainWindow", "custom"))
         self.lambda_choice.setItemText(1, _translate("MainWindow", "GCV"))
