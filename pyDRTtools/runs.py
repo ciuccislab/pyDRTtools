@@ -111,7 +111,7 @@ class EIS_object(object):
         plt.show()
 
 
-def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5):
+def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5):
     
     """
     This function enables to compute the DRT using ridge regression (also known as Tikhonov regression)
@@ -322,7 +322,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     return entry
 
 
-def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
+def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
     
     """
     This function enables to recover the DRT with its uncertainty in a Bayesian framework. 
@@ -502,7 +502,7 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
 
 ## For peak analysis
 
-def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, peak_method = 'separate', N_peaks=1):
+def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, peak_method = 'separate', N_peaks=1):
      
     """
        This function enables to identify the DRT peaks.
