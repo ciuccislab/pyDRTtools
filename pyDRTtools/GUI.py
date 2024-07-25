@@ -223,7 +223,6 @@ class GUI(QtWidgets.QMainWindow):
                 # first save L and R
                 writer.writerow(['L', self.data.L])
                 writer.writerow(['R', self.data.R])
-                writer.writerow(['lambda_value', self.data.lambda_value])
                 writer.writerow(['tau','gamma'])
                 
                 # after that, save tau and gamma

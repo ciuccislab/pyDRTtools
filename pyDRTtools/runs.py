@@ -1,26 +1,42 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Ting Hei Wan, Adeleke Maradesa, Baptiste Py'
-__date__ = '13th November 2023'
+__date__ = '28th June 2024'
 
 """
-    Several Python packages are required, namely numpy, pandas, math, scipy, and matplotlib.
+This file stores all the functions that are shared by all three DRT methods, i.e., simple, Bayesian, and Bayesian Hilbert Transform.
+References: 
+    [1] T. H. Wan, M. Saccoccio, C. Chen, F. Ciucci, Influence of the discretization methods on the distribution of relaxation times deconvolution: Implementing radial basis functions with DRTtools, Electrochimica Acta. 184 (2015) 483-499.
+    [2] M. Saccoccio, T. H. Wan, C. Chen,F. Ciucci, Optimal regularization in distribution of relaxation times applied to electrochemical impedance spectroscopy: Ridge and lasso regression methods - A theoretical and experimental study, Electrochimica Acta. 147 (2014) 470-482.
+    [3] J. Liu, T. H. Wan, F. Ciucci, A Bayesian view on the Hilbert transform and the Kramers-Kronig transform of electrochemical impedance data: Probabilistic estimates and quality scores, Electrochimica Acta. 357 (2020) 136864.
+    [4] A. Maradesa, B. Py, T.H. Wan, M.B. Effat, F. Ciucci, Selecting the regularization parameter in the distribution of relaxation times, Journal of the Electrochemical Society. 170 (2023) 030502.
 """
-
 
 # Maths and data related packages
 import numpy as np
+import sys
 from numpy import log, log10, sqrt
 import pandas as pd
 from math import pi
-from scipy.optimize import minimize
+from scipy.optimize import differential_evolution, minimize
+from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
+import importlib
+from cvxopt import matrix, solvers
 
 # pyDRTtools related package
-from . import basics 
+#
+from . import peak_analysis as peaks
+# from . import parameter_selection as param
+from . import basics
+from . import nearest_PD as nPD
 import importlib
 importlib.reload(basics)
+importlib.reload(peaks)
+# importlib.reload(param)
+#from . import deep_learning as deep
 from . import BHT 
-from . import HMC 
+from . import HMC
+import time 
 
 class EIS_object(object):
     
@@ -29,13 +45,12 @@ class EIS_object(object):
     def __init__(self, freq, Z_prime, Z_double_prime):
         
         """
-        This function define an EIS_object.
+        This is EIS_object class 
         Inputs:
             freq: frequency of the EIS measurement
             Z_prime: real part of the impedance
             Z_double_prime: imaginery part of the impedance
         """
-        
         # define an EIS_object
         self.freq = freq
         self.Z_prime = Z_prime
@@ -47,9 +62,12 @@ class EIS_object(object):
         self.Z_prime_0 = Z_prime
         self.Z_double_prime_0 = Z_double_prime
         self.Z_exp_0 = Z_prime + 1j*Z_double_prime
-        
+
         self.tau = 1/freq # we assume that the collocation points equal to 1/freq as default
-        self.tau_fine  = np.logspace(log10(self.tau.min())-0.5,log10(self.tau.max())+0.5,10*freq.shape[0])            
+        self.tau_fine  = np.logspace(log10(self.tau.min())-0.5,log10(self.tau.max())+0.5,10*freq.shape[0]) 
+        ## select custom collocation
+
+        # tau_fine = np.logspace(tau_min, tau_max, num = N_taus, endpoint=True)   
 
         self.method = 'none'
     
@@ -110,8 +128,10 @@ class EIS_object(object):
     
         plt.show()
 
+# 
 
-def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5):
+def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5):
+    
     
     """
     This function enables to compute the DRT using ridge regression (also known as Tikhonov regression)
@@ -129,8 +149,6 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         coeff: magnitude of the shape control
     """
     
-    # Step 1: define the matrices
-    
     # Step 1.1: define the optimization bounds
     N_freqs = entry.freq.shape[0]
     N_taus = entry.tau.shape[0]
@@ -141,20 +159,20 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.epsilon = basics.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
     
     # Step 1.3: compute A matrix
-    entry.A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
-    entry.A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    ## assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type)
+    entry.A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    entry.A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
     
-    # Step 1.4: compute M matrix
+    # Step 1.4: compute M matrix  assemble_M_1(tau_vec, epsilon, rbf_type)
     if der_used == '1st order':
-        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
     elif der_used == '2nd order':
-        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
     
     # Step 2: conduct ridge regularization
     if data_used == 'Combined Re-Im Data': # select both parts of the impedance for the simple run
  
         if induct_used == 0 or induct_used == 2: # without considering the inductance
-            
             N_RL = 1 # N_RL length of resistance plus inductance
             entry.A_re = np.zeros((N_freqs, N_taus+N_RL))
             entry.A_re[:,N_RL:] = entry.A_re_temp
@@ -166,7 +184,42 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             entry.M = np.zeros((N_taus+N_RL, N_taus+N_RL))
             entry.M[N_RL:,N_RL:] = entry.M_temp
             
-        elif induct_used == 1: #considering the inductance
+            # optimally select the regularization level
+            # initial guess for the hyperparameter
+            log_lambda_0 = log(reg_param) # initial guess for lambda
+            #
+            if cv_type=='custom':
+                entry.lambda_value = reg_param
+            else:
+                entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, log_lambda_0, cv_type) 
+                
+            print('The value of the regularization parameter is', entry.lambda_value) # to check the value of lambda
+            
+            # recover the DRT using cvxopt
+            H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, entry.lambda_value)
+            # enforce positivity constraint # N_RL
+            ## bound matrix
+            G = matrix(-np.identity(entry.b_re.shape[0]+N_RL))
+            h = matrix(np.zeros(entry.b_re.shape[0]+N_RL))
+            # Formulate the quadratic programming problem
+            # Solve the quadratic programming problem
+            sol = solvers.qp(matrix(H_combined), matrix(c_combined),G,h)
+            x = np.array(sol['x']).flatten()
+
+            # prepare for HMC sampler, it will be used if needed
+            entry.mu_Z_re = entry.A_re@x
+            entry.mu_Z_im = entry.A_im@x
+            entry.res_re = entry.mu_Z_re-entry.b_re
+            entry.res_im = entry.mu_Z_im-entry.b_im
+
+            # only consider std of residuals in both parts
+            sigma_re_im = np.std(np.concatenate([entry.res_re,entry.res_im]))
+            inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
+        
+            Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
+            mu_numerator = entry.A_re.T@inv_V@entry.b_re + entry.A_im.T@inv_V@entry.b_im
+           
+        elif induct_used == 1: # considering the inductance
             N_RL = 2
             entry.A_re = np.zeros((N_freqs, N_taus+N_RL))
             entry.A_re[:, N_RL:] = entry.A_re_temp
@@ -178,31 +231,39 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
 
             entry.M = np.zeros((N_taus+N_RL, N_taus+N_RL))
             entry.M[N_RL:,N_RL:] = entry.M_temp
-        
-        # optimally select the regularization level
-        log_lambda_0 = log(reg_param) # initial guess for lambda
-        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+            
+            # optimally select the regularization level
+            log_lambda_0 = log(reg_param) # initial guess for lambda
+            if cv_type=='custom':
+                entry.lambda_value = reg_param
+            else:
+                entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, log_lambda_0, cv_type) 
+                
+            print('The value of the regularization parameter is', entry.lambda_value) # to check the value of lambda
+            
+            # recover the DRT using cvxopt
+            H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, entry.lambda_value)
+            # enforce positivity constraint # N_RL
+            ## bound matrix
+            G = matrix(-np.identity(entry.b_re.shape[0]+N_RL))
+            h = matrix(np.zeros(entry.b_re.shape[0]+N_RL))
+            # Formulate the quadratic programming problem
+            # Solve the quadratic programming problem
+            sol = solvers.qp(matrix(H_combined), matrix(c_combined),G,h)
+            x = np.array(sol['x']).flatten()
 
-        # recover the DRT using cvxopt
-        H_combined,c_combined = basics.quad_format_combined(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, entry.lambda_value)
-        # enforce positivity constraint # N_RL
-        lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
-        bound_mat = np.eye(lb.shape[0])
-        ###
-        x = basics.cvxopt_solve_qpr(H_combined, c_combined,-bound_mat,lb) # using cvxopt
-        # prepare for HMC sampler, it will be used if needed
-        entry.mu_Z_re = entry.A_re@x
-        entry.mu_Z_im = entry.A_im@x
-        entry.res_re = entry.mu_Z_re-entry.b_re
-        entry.res_im = entry.mu_Z_im-entry.b_im
+            entry.mu_Z_re = entry.A_re@x
+            entry.mu_Z_im = entry.A_im@x
+            entry.res_re = entry.mu_Z_re-entry.b_re
+            entry.res_im = entry.mu_Z_im-entry.b_im
 
-        # only consider std of residuals in both parts
-        sigma_re_im = np.std(np.concatenate([entry.res_re,entry.res_im]))
-        inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
-    
-        Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
-        mu_numerator = entry.A_re.T@inv_V@entry.b_re + entry.A_im.T@inv_V@entry.b_im
+            # only consider std of residuals in both parts
+            sigma_re_im = np.std(np.concatenate([entry.res_re,entry.res_im]))
+            inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
         
+            Sigma_inv = (entry.A_re.T@inv_V@entry.A_re) + (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
+            mu_numerator = entry.A_re.T@inv_V@entry.b_re + entry.A_im.T@inv_V@entry.b_im
+            
     elif data_used == 'Im Data': # select the imaginary part of the impedance for the simple run
         
         if induct_used == 0 or induct_used == 2: # without considering the inductance
@@ -216,6 +277,40 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             entry.M = np.zeros((N_taus+N_RL, N_taus+N_RL))
             entry.M[N_RL:,N_RL:] = entry.M_temp
             
+            # optimally select the regularization level
+            log_lambda_0 = log(reg_param) # initial guess for lambda
+            if cv_type=='custom':
+                entry.lambda_value = reg_param
+            else:
+                entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, log_lambda_0, cv_type) 
+                
+            print('The value of the regularization parameter is', entry.lambda_value) # to check the value of lambda
+            
+            # recover the DRT using cvxopt
+            H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, entry.lambda_value)
+            # enforce positivity constraints
+            ## bound matrix
+            G = matrix(-np.identity(entry.b_im.shape[0]+N_RL))
+            h = matrix(np.zeros(entry.b_im.shape[0]+N_RL))
+            # Formulate the quadratic programming problem
+            # Solve the quadratic programming problem
+            sol = solvers.qp(matrix(H_im), matrix(c_im),G,h)
+            x = np.array(sol['x']).flatten()
+
+            # prepare for HMC sampler
+            entry.mu_Z_re = entry.A_re@x
+            entry.mu_Z_im = entry.A_im@x
+            entry.res_re = entry.mu_Z_re-entry.b_re
+            entry.res_im = entry.mu_Z_im-entry.b_im
+            
+            # only consider std of residuals in the imaginary part
+            sigma_re_im = np.std(entry.res_im)
+            inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
+            
+            Sigma_inv = (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
+            mu_numerator = entry.A_im.T@inv_V@entry.b_im
+
+            
         elif induct_used == 1: # considering the inductance
             N_RL = 1
             entry.A_re = np.zeros((N_freqs, N_taus+N_RL))
@@ -227,35 +322,44 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
             
             entry.M = np.zeros((N_taus+N_RL, N_taus+N_RL))
             entry.M[N_RL:,N_RL:] = entry.M_temp
-        
-        # optimally select the regularization level
-        log_lambda_0 = log(reg_param) # initial guess for lambda
-        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
-        
-        ##
-        # enforce positivity constraints
-        lb = np.zeros([entry.b_re.shape[0]+N_RL]) 
-        bound_mat = np.eye(lb.shape[0])
-        
-        # recover the DRT using cvxopt
-        H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, entry.lambda_value)
+            
+            # optimally select the regularization level
+            log_lambda_0 = log(reg_param) # initial guess for lambda
+            if cv_type=='custom':
+                entry.lambda_value = reg_param
+            else:
+                entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, log_lambda_0, cv_type) 
 
-        x = basics.cvxopt_solve_qpr(H_im, c_im,-bound_mat,lb) # using cvxopt
-        # prepare for HMC sampler
-        entry.mu_Z_re = entry.A_re@x
-        entry.mu_Z_im = entry.A_im@x
-        entry.res_re = entry.mu_Z_re-entry.b_re
-        entry.res_im = entry.mu_Z_im-entry.b_im
-        
-        # only consider std of residuals in the imaginary part
-        sigma_re_im = np.std(entry.res_im)
-        inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
-        
-        Sigma_inv = (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
-        mu_numerator = entry.A_im.T@inv_V@entry.b_im
-        
+            print('The value of the regularization parameter is', entry.lambda_value) # to check the value of lambda
+            
+            # recover the DRT using cvxopt
+            
+            H_im, c_im = basics.quad_format_separate(entry.A_im, entry.b_im, entry.M, entry.lambda_value)
+            #
+            # enforce positivity constraints
+            # bound matrix
+            G = matrix(-np.identity(entry.b_im.shape[0]+N_RL))
+            h = matrix(np.zeros(entry.b_im.shape[0]+N_RL))
+            # Formulate the quadratic programming problem
+            ##
+            # Solve the quadratic programming problem
+            sol = solvers.qp(matrix(H_im), matrix(c_im),G,h)
+            x = np.array(sol['x']).flatten()
+
+            # prepare for HMC sampler
+            entry.mu_Z_re = entry.A_re@x
+            entry.mu_Z_im = entry.A_im@x
+            entry.res_re = entry.mu_Z_re-entry.b_re
+            entry.res_im = entry.mu_Z_im-entry.b_im
+            
+            # only consider std of residuals in the imaginary part
+            sigma_re_im = np.std(entry.res_im)
+            inv_V = 1/sigma_re_im**2*np.eye(N_freqs)
+            
+            Sigma_inv = (entry.A_im.T@inv_V@entry.A_im) + (entry.lambda_value/sigma_re_im**2)*entry.M
+            mu_numerator = entry.A_im.T@inv_V@entry.b_im
+
     elif data_used == 'Re Data': # select the real part of the impedance for the simple run
-        
         N_RL = 1
         entry.A_re = np.zeros((N_freqs, N_taus+N_RL))
         entry.A_re[:, N_RL:] = entry.A_re_temp
@@ -269,17 +373,26 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         
         # optimally select the regularization level
         log_lambda_0 = log(reg_param) # initial guess for lambda
-        entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, log_lambda_0, cv_type) 
+        if cv_type=='custom':
+            entry.lambda_value = reg_param
+        else:
+            entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, log_lambda_0, cv_type) 
+
+        print('The value of the regularization parameter is', entry.lambda_lambda) # to check the value of lambda
         
         # recover the DRT using cvxopt 
         H_re,c_re = basics.quad_format_separate(entry.A_re, entry.b_re, entry.M, entry.lambda_value)
-        
-        ## enforce negativity constraint   
-        
-        lb = np.zeros([entry.b_re.shape[0]+N_RL])  
-        bound_mat = np.eye(lb.shape[0])
-        # recovered DRT
-        x = basics.cvxopt_solve_qpr(H_re, c_re, -bound_mat,lb) # using cvxopt
+    
+        # enforce positivity constraints
+        # ## bound matrix
+        G = matrix(-np.identity(entry.b_re.shape[0]+N_RL))
+        h = matrix(np.zeros(entry.b_re.shape[0]+N_RL))
+        # Formulate the quadratic programming problem
+        ###
+        # Solve the quadratic programming problem
+        sol = solvers.qp(matrix(H_re), matrix(c_re),G,h)
+        x = np.array(sol['x']).flatten()
+
         # prepare for HMC sampler
         entry.mu_Z_re = entry.A_re@x
         entry.mu_Z_im = entry.A_im@x       
@@ -296,8 +409,8 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.Sigma_inv = (Sigma_inv+Sigma_inv.T)/2
     
     # test if the covariance matrix is positive definite
-    if (basics.is_PD(entry.Sigma_inv)==False):
-        entry.Sigma_inv = basics.nearest_PD(entry.Sigma_inv) # if not, use the nearest positive definite matrix
+    if (nPD.is_PD(entry.Sigma_inv)==False):
+        entry.Sigma_inv = nPD.nearest_PD(entry.Sigma_inv) # if not, use the nearest positive definite matrix
     
     L_Sigma_inv = np.linalg.cholesky(entry.Sigma_inv)
     entry.mu = np.linalg.solve(L_Sigma_inv, mu_numerator)
@@ -313,7 +426,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
         entry.L, entry.R = 0, x[0]
     elif N_RL == 2:
         entry.L, entry.R = x[0:2]
-    
+        
     entry.x = x[N_RL:]
     entry.out_tau_vec, entry.gamma = basics.x_to_gamma(x[N_RL:], entry.tau_fine, entry.tau, entry.epsilon, rbf_type)
     entry.N_RL = N_RL 
@@ -322,7 +435,7 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     return entry
 
 
-def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
+def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
     
     """
     This function enables to recover the DRT with its uncertainty in a Bayesian framework. 
@@ -376,6 +489,7 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
 
     return entry
 
+##
 
 def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control = 'FWHM Coefficient', coeff = 0.5):
     
@@ -398,8 +512,10 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
     
     # Step 1: construct the A matrix
     entry.epsilon = basics.compute_epsilon(entry.freq, coeff, rbf_type, shape_control)
-    A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
-    A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type, flag1='simple', flag2='impedance')
+    ####
+    A_re_temp = basics.assemble_A_re(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    A_im_temp = basics.assemble_A_im(entry.freq, entry.tau, entry.epsilon, rbf_type)
+    ##
     
     # add resistance column and inductance column to A_re and A_im
     entry.A_re = np.append(np.ones([N_freqs,1]), A_re_temp, axis=1)
@@ -411,10 +527,10 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
     
     # Step 2: construct the M matrix
     if der_used == '1st order':
-        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_1(entry.tau, entry.epsilon, rbf_type)
     
     elif der_used == '2nd order':
-        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type, flag='simple')
+        entry.M_temp = basics.assemble_M_2(entry.tau, entry.epsilon, rbf_type)
     entry.M = np.zeros((N_taus+1, N_taus+1))
     entry.M[1:,1:] = entry.M_temp 
     
@@ -500,114 +616,89 @@ def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control 
     return entry
 
 
-## For peak analysis
+# ## For peak analysis
 
-def peak_analysis(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'custom', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, peak_method = 'separate', N_peaks=1):
-     
+def peak_analysis(entry, rbf_type='Gaussian', data_used='Combined Re-Im Data', induct_used=1, der_used='1st order', cv_type='GCV', reg_param=1E-3, shape_control='FWHM Coefficient', coeff=0.5, peak_method='separate', N_peaks=1):
     """
-       This function enables to identify the DRT peaks.
-       Inputs:
-            entry: an EIS spectrum
-            rbf_type: discretization function
-            data_used: part of the EIS spectrum used for regularization
-            induct_used: treatment of the inductance part
-            der_used: order of the derivative considered for the M matrix
-            cv_type: regularization method used to select the regularization parameter for ridge regression
-            reg_param: regularization parameter applied when "custom" is used for cv_type  
-            shape_control: option for controlling the shape of the radial basis function (RBF) 
-            coeff: magnitude of the shape control
-            N_peaks: desired number of peaks
-            peak_method: option for the fit of the recovered DRT, either 'separate' to separately fit each peak, or 'combine' to optimize all the peaks at once
+    This function identifies the DRT peaks.
+    
+    Inputs:
+        entry: an EIS spectrum
+        rbf_type: discretization function
+        data_used: part of the EIS spectrum used for regularization
+        induct_used: treatment of the inductance part
+        der_used: order of the derivative considered for the M matrix
+        cv_type: regularization method used to select the regularization parameter for ridge regression
+        reg_param: regularization parameter applied when "custom" is used for cv_type  
+        shape_control: option for controlling the shape of the radial basis function (RBF) 
+        coeff: magnitude of the shape control
+        N_peaks: desired number of peaks
+        peak_method: option for the fit of the recovered DRT, either 'separate' to separately fit each peak, or 'combine' to optimize all the peaks at once
     """
     
-    # Step 1: define the necessary quantities before the subsequent optimizations
+    # Step 1: Define the necessary quantities before the subsequent optimizations
+    entry.N_peaks = int(N_peaks)
     
-    entry.N_peaks = np.int_(N_peaks)
-    simple_run(entry, rbf_type=rbf_type, data_used=data_used, induct_used = induct_used, 
-               der_used=der_used, cv_type=cv_type, reg_param=reg_param, shape_control = shape_control, coeff=coeff) 
+    # This is dummy simple run
+    simple_run(entry, rbf_type=rbf_type, data_used=data_used, induct_used=induct_used, 
+               der_used=der_used, cv_type=cv_type, reg_param=reg_param, shape_control=shape_control, coeff=coeff) 
     
-    # upper and lower log tau values
+    # Upper and lower log tau values
     log_tau_min = np.min(np.log(entry.out_tau_vec))
     log_tau_max = np.max(np.log(entry.out_tau_vec))
-
-    # list of gaussian matrices
-    p_fit_list = [0]*entry.N_peaks  # list of parameter values 
-    lb_list = [0]*entry.N_peaks    # list of lower bounds for the parameter values of each peak
-    ub_list = [0]*entry.N_peaks    # list of upper bounds for the parameter values of each peak
     
-    # list of gaussian matrices
-    entry.gamma_fit_list = [0]*entry.N_peaks # separate case
+    # Find initial peaks in the gamma spectrum
+    peak_indices, _ = find_peaks(entry.gamma, height=0.005 * np.std(entry.gamma), distance=5)
+    N_peaks = min(len(peak_indices), entry.N_peaks)
     
-    diff_gamma = np.copy(entry.gamma) # difference between the recovered DRT and the DRT with fitted peaks
+    # Set up bounds for optimization
+    bounds = []
+    for _ in range(N_peaks):
+        bounds.extend([
+            (0, 1.3 * np.sqrt(np.max(entry.gamma))),  # Bounds for sigma_f
+            (log_tau_min, log_tau_max),               # Bounds for mu_log_tau
+            (1.0 / (log_tau_max - log_tau_min), 10)   # Bounds for inv_sigma
+        ])
     
-        
-    # Step 2: optimal fit of each DRT peak
+    # Define the objective function for optimization
+    def objective(params):
+        return np.sum((peaks.peak_fct(params, entry.out_tau_vec, entry.N_peaks, 'Gaussian') - entry.gamma) ** 2)
     
-    for n in range(entry.N_peaks):
-        
-        # bounds for the N_peaks optimizations
-        max_sigma_f = 1.3*np.sqrt(np.max(diff_gamma))
-        lb = np.array([0, log_tau_min, 1.0/(log_tau_max-log_tau_min)]) # lower bounds for the subsequent minimization
-        ub = np.array([max_sigma_f, log_tau_max, np.inf]) # upper bounds for the subsequent minimization
-        lb_list[n] = lb
-        ub_list[n] = ub
-        
-        # residual function to minimize for each DRT peak
-        residual_fc = lambda p: np.linalg.norm(basics.gauss_fct(p, entry.out_tau_vec, 1) - diff_gamma) ** 2
-        
-        # initial guesses for the parameter values for each DRT peak
-        index_diff_peak = np.argmax(diff_gamma)
-        log_tau_diff_peak = np.log(entry.out_tau_vec[index_diff_peak])
-        diff_gamma_at_peak = diff_gamma[index_diff_peak]
-        sigma_f_at_peak = np.sqrt(diff_gamma_at_peak)
-        p_0 = np.array([sigma_f_at_peak, log_tau_diff_peak, 1]) 
-        
-        # minimization
-        options = {'disp': True, 'maxiter': 1e5} # additional options for the optimization
-        
-        # optimized p values and optimized fit of each DRT peak
-        out_fit = minimize(residual_fc, p_0, bounds=list(zip(lb, ub)), method='L-BFGS-B', options=options)
-        p_fit = out_fit.x
-        gamma_fit = basics.gauss_fct(p_fit, entry.out_tau_vec, 1)
-        
-        # save the n-th p values
-        p_fit_list[n] = p_fit
-        
-        # save the n-th gamma fit
-        entry.gamma_fit_list[n] = gamma_fit
-        
-        # initial DRT without the peak that was just fitted
-        diff_gamma -= gamma_fit
+    # Parameter optimization using differential evolution with workers=1 to disable parallel processing
+    out_fit_tot = differential_evolution(objective, bounds, popsize=20, mutation=(0.5, 1.5), recombination=0.8,
+                                         strategy='best1bin', seed=42, maxiter=200, workers=1)
     
-    # Step 3: optimal fit of the complete DRT function
+    # Parameters for the overall Gaussian
+    theta_fit_tot = out_fit_tot.x
     
-    # bounds for the overall optimization
-    bnds_list = [] # concatenation of all the p values
+    # Optimize the overall parameter for refinement purposes
+    out_fit_tot = minimize(objective, theta_fit_tot, bounds=bounds, method='L-BFGS-B')
+    theta_fit_tot = out_fit_tot.x
+    entry.gamma_fit_tot = peaks.peak_fct(theta_fit_tot, entry.out_tau_vec, entry.N_peaks, 'Gaussian')
     
+    # Generate individual Gaussian fits for each peak
+    gamma_fit_list = [0] * N_peaks
     for k in range(entry.N_peaks):
-        bnds_list.extend([(lb_list[k][0], ub_list[k][0]), (lb_list[k][1], ub_list[k][1]), (lb_list[k][2], ub_list[k][2])])     
+        params = theta_fit_tot[3 * k:3 * k + 3]
+        gamma_fit = peaks.peak_fct(params, entry.out_tau_vec, 1, 'Gaussian')
+        gamma_fit_list[k] = gamma_fit
     
-    # initial values of the parameters for the overall optimization
-    p_fit_ini = np.concatenate([p_fit_list[k] for k in range(entry.N_peaks)])
-    
-    # residual function to minimize
-    residual_fct_fit = lambda p: np.linalg.norm(basics.gauss_fct(p, entry.out_tau_vec, entry.N_peaks) - entry.gamma) ** 2
-    
-    # minimization
-    out_fit_tot = minimize(residual_fct_fit, p_fit_ini, method='L-BFGS-B', options=options, bounds = bnds_list)
-    
-    # optimized p values and optimized fit
-    p_fit_tot = out_fit_tot.x
-    entry.gamma_fit_tot = basics.gauss_fct(p_fit_tot, entry.out_tau_vec, entry.N_peaks)
-    
-    if peak_method == 'separate': # separate fit of the DRT
-    
-        entry.out_gamma_fit = entry.gamma_fit_list
-    
-    else: # combine fit of the DRT
-    
-        entry.out_gamma_fit = entry.gamma_fit_tot
+    if peak_method == 'separate':  # Separate fit of the DRT
+        entry.out_gamma_fit = gamma_fit_list
+        entry.Gaussian = np.array(gamma_fit_list)
         
-    entry.method = 'peak'   
+        # Determine the number of vectors (columns)
+        entry.num_vectors = entry.Gaussian.shape[0]
+        
+        # Generate automatic column headings
+        entry.column_headings = [f'Gaussian_{i+1}' for i in range(entry.num_vectors)]
+        
+        # Convert the NumPy array to a DataFrame with automatic headings
+        entry.df = pd.DataFrame(entry.Gaussian.T, columns=entry.column_headings)
+    
+    else:  # Combine fit of the DRT
+        entry.out_gamma_fit = entry.gamma_fit_tot
+    
+    entry.method = 'peak'
     
     return entry
