@@ -1,6 +1,6 @@
 __authors__ = 'Francesco Ciucci, Adeleke Maradesa'
 
-__date__ = '16th Jan., 2024'
+__date__ = '26th Jan., 2024'
 
 import setuptools
 from os.path import exists, join
@@ -31,7 +31,7 @@ dependencies = [
 
 setuptools.setup(
     name = "pyDRTtools",
-    version = "0.2.0.0",
+    version = "0.2",
     author = "ciuccislab",
     author_email = "amaradesa@connect.ust.hk",
     description = "pyDRTtools: A Python-based DRTtools to Deconvolve the Distribution of Relaxation Times from Electrochemical Impedance Spectroscopy Data",
