@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Baptiste Py, Ting Hei Wan, Adeleke Maradesa'
 
-__date__ = '20th August 2023'
+__date__ = '28th June 2024'
 
 import sys
 import csv
@@ -10,11 +10,9 @@ from numpy import log10, absolute, angle
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from . import layout
-#from .pyDRTtools_layout import Ui_MainWindow
-#from runs import *
-#from runs import *
+#
 from .runs import *
-#from .runs import EIS_Object, simple_run, Bayesian_run,BHT_run,peak_analysis
+#
 import matplotlib as mpl
 mpl.use("Qt5Agg")
 import matplotlib.pyplot as plt
@@ -118,6 +116,17 @@ class GUI(QtWidgets.QMainWindow):
         # we perform the computation
         self.data = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
                                 der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
+        
+        entry = self.data
+        # optimally select the regularization level
+        if cv_type == 'custom':
+            entry.lambda_value = reg_param
+        else:
+            entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, -3, cv_type)
+
+        # Update the QLineEdit with the computed regularization parameter
+        self.ui.reg_param_entry_2.setText(str(entry.lambda_value))
+
         self.plotting_callback('DRT_data')
 
     def bayesian_run_callback(self): # callback for Bayesian regularization
@@ -155,6 +164,7 @@ class GUI(QtWidgets.QMainWindow):
         
         # we perform the computation
         self.data = BHT_run(self.data, rbf_type, der_used, shape_control, coeff)
+        ##
         self.plotting_callback('DRT_data')
     
     def peak_analysis_run_callback(self): # callback for peak analysis
@@ -519,7 +529,7 @@ class Figure_Canvas(FigureCanvas):
             y_max = max(entry.gamma)
         
         self.axes.set_xlabel(r'$\tau/s$')
-        self.axes.set_ylabel(r'$\gamma(log \tau)/\Omega$')
+        self.axes.set_ylabel(r'$\gamma( \tau)/\Omega$')
         self.axes.set_ylim([y_min, 1.1*y_max])
         self.axes.set_xlim([min(entry.out_tau_vec), max(entry.out_tau_vec)])
     

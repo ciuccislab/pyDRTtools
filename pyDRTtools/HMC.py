@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
-__authors__ = 'Francesco Ciucci, Ting Hei Wan'
+__authors__ = 'Francesco Ciucci, Ting Hei Wan, Baptiste Py, Adeleke Maradesa'
 
-__date__ = '20th August 2023'
+__date__ = '10th April 2024'
 
 import numpy as np
 from numpy import inf, pi
 from numpy.random import randn
 from numpy.linalg import cholesky
 from numpy.matlib import repmat
+from . import nearest_PD as nPD
 
 
 def generate_tmg(F, g, M, mu_r, initial_X, cov=True, L=1):
     
         """
            This function returns samples from a truncated multivariate normal distribution.
-           Reference: A. Pakman, L. Paninski, Exact hamiltonian monte carlo for truncated multivariate 
+           Reference: A. Pakman, L. Paninski, Exact hamiltonian Monte Carlo for truncated multivariate 
            Gaussians, J. Comput. Graph. Stat. 23 (2014) 518–542 (https://doi.org/10.48550/arXiv.1208.4118). 
            Inputs:
                F: m x d array (m is the number of constraints and d the dimension of the sample)
@@ -41,6 +42,9 @@ def generate_tmg(F, g, M, mu_r, initial_X, cov=True, L=1):
         if cov:
             mu = mu_r
             g = g + F@mu
+            M = 0.5*(M + M.T) # symmetrize the matrix M
+            if nPD.is_PD(M)==False:
+                M = nPD.nearest_PD(M) 
             R = cholesky(M)
             R = R.T # change the lower matrix to upper matrix
             F = F@R.T
@@ -50,6 +54,9 @@ def generate_tmg(F, g, M, mu_r, initial_X, cov=True, L=1):
         # using precision matrix
         else:
             r = mu_r
+            M = 0.5*(M + M.T) # symmetrize the matrix M
+            if nPD.is_PD(M)==False:
+                M = nPD.nearest_PD(M)
             R = cholesky(M)
             R = R.T # change the lower matrix to upper matrix
             mu = np.linalg.solve(R, np.linalg.solve(R.T, r))
@@ -58,7 +65,7 @@ def generate_tmg(F, g, M, mu_r, initial_X, cov=True, L=1):
             initial_X = initial_X - mu
             initial_X = R@initial_X
 
-        d = initial_X.shape[0]     # dimension of mean vector; each sample must be of this dimension
+        d = initial_X.shape[0] # dimension of mean vector; each sample must be of this dimension
         bounce_count = 0
         nearzero = 1E-12
         
@@ -173,63 +180,4 @@ def generate_tmg(F, g, M, mu_r, initial_X, cov=True, L=1):
         
         # convert back to array
         return Xs
-    
-
-if __name__ == '__main__':
-    
-    """
-        The following command is used for debugging.
-        It will not be executed when this script is imported with import hmc_exact
-    """
-    
-    from pyDRTtools_runs import *
-    import pyDRTtools_basics as gf
-    
-    # import EIS file
-    object_A = EIS_object.from_file('data_1.csv')
-    
-    rbf_type = 'Gaussian'
-    data_used = 'Im Data'
-    induct_used = 1
-    der_used = '2nd order'
-    cv_type = 'GCV'        #lambda_value = 1E-3
-    NMC_sample = 2000
-    shape_control = 'FWHM Coefficient'
-    coeff = 0.5
-    
-    simple_run(object_A, rbf_type, data_used, induct_used, der_used, cv_type, shape_control, coeff)
-    
-    # object_A.plot_DRT()
-    object_A.mu = object_A.mu[object_A.N_RL:] # reshape to avoid error as
-    object_A.Sigma_inv = object_A.Sigma_inv[object_A.N_RL:,object_A.N_RL:]
-    
-    # here we try to use cholesky instead of direct inverse 
-    L_Sigma_inv = np.linalg.cholesky(object_A.Sigma_inv)
-    L_Sigma_agm = np.linalg.inv(L_Sigma_inv)
-    object_A.Sigma = L_Sigma_agm.T@L_Sigma_agm
-    
-    F = np.eye(object_A.x.shape[0])
-    
-    # g = np.zeros(object_A.x.shape[0])
-    g = np.finfo(float).eps*np.ones(object_A.mu.shape[0])
-    # g = g.reshape(g.shape[0],1)
-    
-    initial_X = object_A.x
-    # using HMC sampler to sample from the truncated Gaussian distribution
-    object_A.Xs = generate_tmg(F, g, object_A.Sigma, object_A.mu, initial_X, cov=True, L=NMC_sample)
-    # object_A.Xs = object_A.Xs.T
-    
-    object_A.lower_bound = np.quantile(object_A.Xs[:,501:],.005,axis=1)
-    object_A.upper_bound = np.quantile(object_A.Xs[:,501:],.995,axis=1)
-    object_A.mean = np.mean(object_A.Xs[:,501:],axis=1)    
-    
-    # map array to gamma
-    object_A.lower_bound = gf.x_to_gamma(object_A.lower_bound, object_A.tau_fine, object_A.tau, object_A.epsilon, rbf_type)
-    object_A.upper_bound = gf.x_to_gamma(object_A.upper_bound, object_A.tau_fine, object_A.tau, object_A.epsilon, rbf_type)
-    object_A.mean = gf.x_to_gamma(object_A.mean, object_A.tau_fine, object_A.tau, object_A.epsilon, rbf_type)
-    
-    object_A.method = 'credit'
-
-    # show the result of object_A
-    object_A.plot_DRT()
     

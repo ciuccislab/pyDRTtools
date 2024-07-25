@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Ting Hei Wan, Baptiste Py, Adeleke Maradesa'
 
-__date__ = '13th November, 2023'
+__date__ = '10th April 2024'
 
 
 import numpy as np
 from numpy import exp
 from math import pi, log, sqrt
 from scipy import integrate
-from scipy.optimize import fsolve, minimize
-from sklearn.model_selection import KFold
-from numpy.linalg import norm, cholesky
+from scipy.optimize import fsolve
 from scipy.linalg import toeplitz
-# import cvxpy as cp
-import cvxopt
-from numpy import *
+from cvxopt import matrix, solvers
+import matplotlib.pyplot as plt
 
+from numpy import *
+from scipy.optimize import minimize
+from . import parameter_selection as param
 
 """
 This file stores all the functions that are shared by all three DRT methods, i.e., simple, Bayesian, and Bayesian Hilbert Transform.
@@ -26,19 +26,19 @@ References:
     [4] A. Maradesa, B. Py, T.H. Wan, M.B. Effat, F. Ciucci, Selecting the regularization parameter in the distribution of relaxation times, Journal of the Electrochemical Society. 170 (2023) 030502.
 """
 
-# Part 1: Discretization of the DRT problem and recovery of the DRT using ridge regression
 
+# Part 1: Discretization of the DRT problem and recovery of the DRT using ridge regression
 def g_i(freq_n, tau_m, epsilon, rbf_type):
     
     """ 
-       This function generates the elements of A_re for the radial-basis-function (RBF) expansion
+       This function generates the elements of A_re based on the radial-basis-function (RBF) expansion
        Inputs: 
             freq_n: frequency
             tau_m: log timescale (log(1/freq_m))
             epsilon : shape factor of radial basis functions used for discretization
             rbf_type: selected RBF type
        Outputs:
-            Elements of A_re for the RBF expansion
+            Elements of A_re based on the RBF expansion
     """
     
     alpha = 2*pi*freq_n*tau_m  
@@ -64,14 +64,14 @@ def g_i(freq_n, tau_m, epsilon, rbf_type):
 def g_ii(freq_n, tau_m, epsilon, rbf_type):
     
     """
-       This function generates the elements of A_im for RBF expansion
+       This function generates the elements of A_im based on the RBF expansion
        Inputs:
            freq_n :frequency
            tau_m : log timescale (log(1/freq_m))
            epsilon  : shape factor of radial basis functions used for discretization
            rbf_type : selected RBF type    
        Outputs:
-           Elements of A_im for the RBF expansion
+           Elements of A_im based on the RBF expansion
     """ 
     
     alpha = 2*pi*freq_n*tau_m  
@@ -93,11 +93,10 @@ def g_ii(freq_n, tau_m, epsilon, rbf_type):
     
     return out_val[0]
 
-
 def compute_epsilon(freq, coeff, rbf_type, shape_control): 
     
     """
-       This function is used to compute epsilon, i.e., the shape factor of the radial basis functions used for discretization. 
+       This function is used to compute the shape factor of the radial basis functions used for discretization. 
        Inputs:
             freq: frequency
             coeff: scalar such that the full width at half maximum (FWHM) of the RBF is equal to 1/coeff times the average relaxation time spacing in logarithm scale
@@ -109,7 +108,7 @@ def compute_epsilon(freq, coeff, rbf_type, shape_control):
     
     N_freq = freq.shape[0]
     
-    if rbf_type == 'Piecewise Linear':
+    if rbf_type == 'PWL':
         return 0
     
     rbf_switch = {
@@ -132,7 +131,7 @@ def compute_epsilon(freq, coeff, rbf_type, shape_control):
         epsilon = coeff*FWHM_coeff/delta
         
     else: # equivalent as the 'Shape Factor' option in the Matlab code
-    
+
         epsilon = coeff
     
     return epsilon
@@ -143,7 +142,8 @@ def compute_epsilon(freq, coeff, rbf_type, shape_control):
 def inner_prod_rbf_1(freq_n, freq_m, epsilon, rbf_type):
     
     """ 
-       This function computes the inner product of the first derivatives of the RBFs with respect to tau_n=log(1/freq_n) and tau_m = log(1/freq_m)
+       This function computes the inner product of the first derivatives of the RBFs 
+       with respect to tau_n=log(1/freq_n) and tau_m = log(1/freq_m)
        Inputs: 
            freq_n: frequency
            freq_m: frequency 
@@ -196,7 +196,8 @@ def inner_prod_rbf_1(freq_n, freq_m, epsilon, rbf_type):
 def inner_prod_rbf_2(freq_n, freq_m, epsilon, rbf_type):
     
     """ 
-       This function computes the inner product of the second derivatives of the RBFs with respect to tau_n=log(1/freq_n) and tau_m = log(1/freq_m)
+       This function computes the inner product of the second derivatives of the RBFs 
+       with respect to tau_n=log(1/freq_n) and tau_m = log(1/freq_m)
        Inputs: 
            freq_n: frequency
            freq_m: frequency 
@@ -260,7 +261,7 @@ def gamma_to_x(gamma_vec, tau_vec, epsilon, rbf_type):
             x_vec obtained by mapping gamma_vec to x = gamma
     """  
     
-    if rbf_type == 'Piecewise Linear':
+    if rbf_type == 'PWL':
         x_vec = gamma_vec
         
     else:
@@ -306,9 +307,9 @@ def x_to_gamma(x_vec, tau_map_vec, tau_vec, epsilon, rbf_type):
             tau_vec and gamma_vec obtained by mapping x to gamma
     """
     
-    if rbf_type == 'Piecewise Linear':
+    if rbf_type == 'PWL':
         gamma_vec = x_vec
-        out_tau_vec = tau_vec
+        out_tau_vec = tau_vec    
 
     else:
         rbf_switch = {
@@ -340,11 +341,10 @@ def x_to_gamma(x_vec, tau_map_vec, tau_vec, epsilon, rbf_type):
         
     return out_tau_vec, gamma_vec
 
-
-def assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type, flag1='simple', flag2='impedance'):
-    
+# compute A_re matrix
+def assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type):
     """
-       This function computes the discretization matrix, A_re, for the real part of the impedance
+       This function computes the discretization matrix, A_re, used to compute the real part of the impedance
        Inputs:
             freq_vec: vector of frequencies
             tau_vec: vector of timescales
@@ -355,86 +355,45 @@ def assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type, flag1='simple', flag2='i
        Output: 
             Approximation matrix A_re
     """    
-    
+
     # compute omega and the number of frequencies and timescales tau
-    omega_vec = 2.*pi*freq_vec
-    N_freqs = freq_vec.size
-    N_taus = tau_vec.size
-    
-    if flag1 == 'simple':
-        
-        # define the A_re output matrix
-        out_A_re = np.zeros((N_freqs, N_taus))
-    
-        # check if the frequencies are sufficiently log spaced
-        std_diff_freq = np.std(np.diff(np.log(1/freq_vec)))
-        mean_diff_freq = np.mean(np.diff(np.log(1/freq_vec)))
-    
-        # check if the frequencies are sufficiently log spaced and that N_freqs = N_taus
-        toeplitz_trick = std_diff_freq/mean_diff_freq<0.01 and N_freqs == N_taus 
+    omega_vec = 2. * pi * freq_vec
+    N_freqs, N_taus = freq_vec.size, tau_vec.size
 
-        if toeplitz_trick and rbf_type != 'Piecewise Linear': # use toeplitz trick
-            
-            R = np.zeros(N_taus)
-            C = np.zeros(N_freqs)
-        
-            for p in range(0, N_freqs):
-            
-                C[p] = g_i(freq_vec[p], tau_vec[0], epsilon, rbf_type)
-        
-            for q in range(0, N_taus):
-            
-                R[q] = g_i(freq_vec[0], tau_vec[q], epsilon, rbf_type)        
-                        
-            out_A_re= toeplitz(C,R) 
+    # define the A_re output matrix
+    out_A_re = np.zeros((N_freqs, N_taus))
+    
+    # # Calculate the standard deviation of logarithmic differences between consecutive timescales (tau = 1/freq_vec)
+    std_diff_freq = np.std(np.diff(np.log(1 / freq_vec)))
+    # Calculate the mean of logarithmic differences between consecutive timescales (tau = 1/freq_vec)
+    mean_diff_freq = np.mean(np.diff(np.log(1 / freq_vec)))
 
-        else: # use brute force
-            
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus):
-            
-                    if rbf_type == 'Piecewise Linear':  # see (A.3a) and (A.4) in [2]              
-                        if q == 0:
-                            out_A_re[p, q] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                        elif q == N_taus-1:
-                            out_A_re[p, q] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
-                        else:
-                            out_A_re[p, q] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])                    
-                
-                    else:
-                        out_A_re[p, q]= g_i(freq_vec[p], tau_vec[q], epsilon, rbf_type)
-    
-    else: # BHT run
-    
-        out_A_re = np.zeros((N_freqs, N_taus+1))
-        out_A_re[:,0] = 1.
-        
-        if flag2 == 'impedance': # for the impedance calculations
-        
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus): # see (11a) in [2]
+    # check if the frequencies are sufficiently log spaced and that N_freqs = N_taus
+    toeplitz_trick = std_diff_freq / mean_diff_freq < 0.01 and N_freqs == N_taus
+
+    if toeplitz_trick and rbf_type != 'PWL':     ## use toeplitz trick
+        R = np.array([g_i(freq_vec[0], tau, epsilon, rbf_type) for tau in tau_vec])
+        C = np.array([g_i(freq, tau_vec[0], epsilon, rbf_type) for freq in freq_vec])
+        out_A_re = toeplitz(C, R)
+
+    else:
+        for p in range(N_freqs):
+            for q in range(N_taus):
+                if rbf_type == 'PWL':  # see (A.3a) and (A.4) in [2]  
                     if q == 0:
-                        out_A_re[p, q+1] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                    elif q == N_taus-1:
-                        out_A_re[p, q+1] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
+                        out_A_re[p, q] = 0.5 / (1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q + 1] / tau_vec[q])
+                    elif q == N_taus - 1:
+                        out_A_re[p, q] = 0.5 / (1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q] / tau_vec[q - 1])
                     else:
-                        out_A_re[p, q+1] = 0.5/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])
-        
-        else: # for the admittance calculations
-        
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus): # see (16a) in the supplementary information (SI) of [2]
-                    if q == 0:
-                        out_A_re[p, q+1] = 0.5*(omega_vec[p]**2*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                    elif q == N_taus-1:
-                        out_A_re[p, q+1] = 0.5*(omega_vec[p]**2*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
-                    else:
-                        out_A_re[p, q+1] = 0.5*(omega_vec[p]**2*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])
+                        out_A_re[p, q] = 0.5 / (1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q + 1] / tau_vec[q - 1])
+                else:
+                    out_A_re[p, q] = g_i(freq_vec[p], tau_vec[q], epsilon, rbf_type)
 
     return out_A_re
 
 
-def assemble_A_im(freq_vec, tau_vec, epsilon, rbf_type, flag1='simple', flag2='impedance'):
+# compute A_im matrix
+def assemble_A_im(freq_vec, tau_vec, epsilon, rbf_type):
     
     """
        This function computes the discretization matrix, A_im, for the imaginary part of the impedance
@@ -448,87 +407,49 @@ def assemble_A_im(freq_vec, tau_vec, epsilon, rbf_type, flag1='simple', flag2='i
        Output: 
             Approximation matrix A_im
     """ 
-    
+
     # compute omega and the number of frequencies and timescales tau
-    omega_vec = 2.*pi*freq_vec
-    N_freqs = freq_vec.size
-    N_taus = tau_vec.size
-    
-    if flag1 == 'simple':
+    omega_vec = 2. * pi * freq_vec
+    N_freqs, N_taus = freq_vec.size, tau_vec.size
 
-        # define the A_re output matrix
-        out_A_im = np.zeros((N_freqs, N_taus))
-    
-        # check if the frequencies are sufficiently log spaced
-        std_diff_freq = np.std(np.diff(np.log(1/freq_vec)))
-        mean_diff_freq = np.mean(np.diff(np.log(1/freq_vec)))
-    
-        # check if the frequencies are sufficiently log spaced and that N_freqs = N_taus
-        toeplitz_trick = std_diff_freq/mean_diff_freq<0.01 and N_freqs == N_taus 
-    
-        if toeplitz_trick and rbf_type != 'Piecewise Linear': # use toeplitz trick
-        
-            R = np.zeros(N_taus)
-            C = np.zeros(N_freqs)
-        
-            for p in range(0, N_freqs):
-            
-                C[p] = - g_ii(freq_vec[p], tau_vec[0], epsilon, rbf_type)
-        
-            for q in range(0, N_taus):
-            
-                R[q] = - g_ii(freq_vec[0], tau_vec[q], epsilon, rbf_type)        
-                        
-            out_A_im = toeplitz(C,R) 
+    # define the A_re output matrix
+    out_A_im = np.zeros((N_freqs, N_taus))
 
-        else: # use brute force
-        
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus):
-            
-                    if rbf_type == 'Piecewise Linear': # see (A.3b) and (A.5) in [2]               
-                        if q == 0:
-                            out_A_im[p, q] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                        elif q == N_taus-1:
-                            out_A_im[p, q] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
-                        else:
-                            out_A_im[p, q] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])                    
-                
-                    else:
-                        out_A_im[p, q]= - g_ii(freq_vec[p], tau_vec[q], epsilon, rbf_type)
-    
-    else: # BHT run
-    
-        out_A_im = np.zeros((N_freqs, N_taus+1))
-        out_A_im[:,0] = omega_vec
+    # Calculate the standard deviation of logarithmic differences between consecutive timescales (tau = 1/freq_vec)
+    std_diff_freq = np.std(np.diff(np.log(1 / freq_vec)))
+    # Calculate the mean of logarithmic differences between consecutive timescales (tau = 1/freq_vec)
+    mean_diff_freq = np.mean(np.diff(np.log(1 / freq_vec)))
 
-        if flag2 == 'impedance': # for the impedance calculations
-        
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus): # see (11b) in [2]
+    # check if the frequencies are sufficiently log spaced and that N_freqs = N_taus
+    toeplitz_trick = std_diff_freq / mean_diff_freq < 0.01 and N_freqs == N_taus
+
+
+    if toeplitz_trick and rbf_type != 'PWL':
+        R = np.array([-g_ii(freq_vec[0], tau, epsilon, rbf_type) for tau in tau_vec])
+        C = np.array([-g_ii(freq, tau_vec[0], epsilon, rbf_type) for freq in freq_vec])
+        out_A_im = toeplitz(C, R)
+
+    else:                         # see (A.3b) and (A.5) in [2]
+        for p in range(N_freqs):
+            for q in range(N_taus):
+                if rbf_type == 'PWL':
                     if q == 0:
-                        out_A_im[p, q+1] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                    elif q == N_taus-1:
-                        out_A_im[p, q+1] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
+                        out_A_im[p, q] = -0.5 * (omega_vec[p] * tau_vec[q]) / (
+                                    1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q + 1] / tau_vec[q])
+                    elif q == N_taus - 1:
+                        out_A_im[p, q] = -0.5 * (omega_vec[p] * tau_vec[q]) / (
+                                    1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q] / tau_vec[q - 1])
                     else:
-                        out_A_im[p, q+1] = -0.5*(omega_vec[p]*tau_vec[q])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])
-        
-        else:  # for the admittance calculations
-        
-            for p in range(0, N_freqs):
-                for q in range(0, N_taus): # see (16b) in the SI of [2]
-                    if q == 0:
-                        out_A_im[p, q+1] = 0.5*(omega_vec[p])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q])
-                    elif q == N_taus-1:
-                        out_A_im[p, q+1] = 0.5*(omega_vec[p])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q]/tau_vec[q-1])
-                    else:
-                        out_A_im[p, q+1] = 0.5*(omega_vec[p])/(1+(omega_vec[p]*tau_vec[q])**2)*log(tau_vec[q+1]/tau_vec[q-1])
- 
+                        out_A_im[p, q] = -0.5 * (omega_vec[p] * tau_vec[q]) / (
+                                    1 + (omega_vec[p] * tau_vec[q]) ** 2) * log(tau_vec[q + 1] / tau_vec[q - 1])
+                else:
+                    out_A_im[p, q] = -g_ii(freq_vec[p], tau_vec[q], epsilon, rbf_type)
+
     return out_A_im
 
 
-def assemble_M_1(tau_vec, epsilon, rbf_type, flag='simple'): # see (38) in [1]
-    
+def assemble_M_1(tau_vec, epsilon, rbf_type):   # see (38) in [1]
+
     """
        This function computes the matrix, M, of the inner products of the first derivatives of the RBF functions used in 
        the expansion. 
@@ -540,82 +461,49 @@ def assemble_M_1(tau_vec, epsilon, rbf_type, flag='simple'): # see (38) in [1]
        Output: 
             Matrix M
     """
-    
-    freq_vec = 1/tau_vec 
-    
-    # first get the number of collocation points
+
+    freq_vec = 1 / tau_vec
     N_taus = tau_vec.size
-    N_freq = freq_vec.size
-    
-    if flag == 'simple': # simple run
-    
-        # define the M output matrix
-        out_M = np.zeros([N_taus, N_taus])
-    
-        # check if the collocation points are sufficiently log spaced
-        std_diff_freq = np.std(np.diff(np.log(tau_vec)));
-        mean_diff_freq = np.mean(np.diff(np.log(tau_vec)));
-    
-        # if they are, we apply the toeplitz trick  
-        toeplitz_trick = std_diff_freq/mean_diff_freq<0.01
-    
-        if toeplitz_trick and rbf_type != 'Piecewise Linear': # apply the toeplitz trick to compute the M matrix 
-        
-            R = np.zeros(N_taus)
-            C = np.zeros(N_taus)
-        
-            for n in range(0,N_taus):
-                C[n] = inner_prod_rbf_1(freq_vec[0], freq_vec[n], epsilon, rbf_type)
-            
-            for m in range(0,N_taus):
-                R[m] = inner_prod_rbf_1(freq_vec[m], freq_vec[0], epsilon, rbf_type)    
-        
-            out_M = toeplitz(C,R) 
-         
-        elif rbf_type == 'Piecewise Linear': 
-       
-            out_L_temp = np.zeros([N_freq-1, N_freq])
-        
-            for iter_freq_n in range(0,N_freq-1):
-                delta_loc = log((1/freq_vec[iter_freq_n+1])/(1/freq_vec[iter_freq_n]))
-                out_L_temp[iter_freq_n,iter_freq_n] = -1/delta_loc
-                out_L_temp[iter_freq_n,iter_freq_n+1] = 1/delta_loc
 
-            out_M = out_L_temp.T@out_L_temp
-    
-        else: # compute rbf with brute force
-    
-            for n in range(0, N_taus):
-                for m in range(0, N_taus):            
-                    out_M[n,m] = inner_prod_rbf_1(freq_vec[n], freq_vec[m], epsilon, rbf_type)
-    
-    else: # BHT run ; see (18) in [3]
-        
-        out_M = np.zeros((N_taus-2, N_taus+1))
-        
-        for p in range(0, N_taus-2):
+    # define the M output matrix
+    out_M = np.zeros([N_taus, N_taus])
 
-            delta_loc = log(tau_vec[p+1]/tau_vec[p])
-            
-            if p==0:
-                out_M[p,p+1] = -3./(2*delta_loc)
-                out_M[p,p+2] = 4./(2*delta_loc)
-                out_M[p,p+3] = -1./(2*delta_loc)
-                
-            elif p == N_taus-2:
-                out_M[p,p]   = 1./(2*delta_loc)
-                out_M[p,p+1] = -4./(2*delta_loc)
-                out_M[p,p+2] = 3./(2*delta_loc)
-                
-            else:
-                out_M[p,p] = 1./(2*delta_loc)
-                out_M[p,p+2] = -1./(2*delta_loc)
-        
+    # Compute the standard deviation and mean of the logarithmic differences between consecutive elements in tau_vec
+    std_diff_freq = np.std(np.diff(np.log(tau_vec)))
+    mean_diff_freq = np.mean(np.diff(np.log(tau_vec)))
+
+    # if they are, we apply the toeplitz trick
+    toeplitz_trick = std_diff_freq / mean_diff_freq < 0.01
+
+    if toeplitz_trick and rbf_type != 'PWL':  # apply the toeplitz trick to compute the M matrix
+
+        R = np.array([inner_prod_rbf_1(freq_vec[0], freq_vec[n], epsilon, rbf_type) for n in range(N_taus)])
+        C = np.array([inner_prod_rbf_1(freq_vec[n], freq_vec[0], epsilon, rbf_type) for n in range(N_taus)])
+
+        out_M = toeplitz(C, R)
+
+    elif rbf_type == 'PWL':
+
+        out_L_temp = np.zeros([N_taus - 1, N_taus])
+
+        for iter_freq_n in range(N_taus - 1):
+            delta_loc = log((1 / freq_vec[iter_freq_n + 1]) / (1 / freq_vec[iter_freq_n]))
+            out_L_temp[iter_freq_n, iter_freq_n] = -1 / delta_loc
+            out_L_temp[iter_freq_n, iter_freq_n + 1] = 1 / delta_loc
+
+        out_M = out_L_temp.T @ out_L_temp
+
+    else:  # compute rbf with brute force
+
+        for n in range(N_taus):
+            for m in range(N_taus):
+                out_M[n, m] = inner_prod_rbf_1(freq_vec[n], freq_vec[m], epsilon, rbf_type)
+
     return out_M
 
 
-def assemble_M_2(tau_vec, epsilon, rbf_type, flag='simple'): # see (38) in [1]
-    
+def assemble_M_2(tau_vec, epsilon, rbf_type):   # see (38) in [1]
+
     """
        This function computes the matrix, M, of the inner products of the second derivatives of the RBF functions used in 
        the expansion. 
@@ -627,96 +515,71 @@ def assemble_M_2(tau_vec, epsilon, rbf_type, flag='simple'): # see (38) in [1]
        Output: 
             Matrix M
     """ 
-    
-    freq_vec = 1/tau_vec            
-    
-    # first get number of collocation points
-    N_taus = tau_vec.size
-    
-    if flag == 'simple': # simple run
-    
-        # define the M output matrix
-        out_M = np.zeros([N_taus, N_taus])
-    
-        # check if the collocation points are sufficiently log spaced
-        std_diff_freq = np.std(np.diff(np.log(tau_vec)));
-        mean_diff_freq = np.mean(np.diff(np.log(tau_vec)));
-    
-        # if they are, we apply the toeplitz trick  
-        toeplitz_trick = std_diff_freq/mean_diff_freq<0.01
-    
-        if toeplitz_trick and rbf_type != 'Piecewise Linear': # apply the toeplitz trick to compute the M matrix 
-        
-            R = np.zeros(N_taus)
-            C = np.zeros(N_taus)
-        
-            for n in range(0,N_taus):
-                C[n] = inner_prod_rbf_2(freq_vec[0], freq_vec[n], epsilon, rbf_type) # later, we shall use tau instead of freq
-            
-            for m in range(0,N_taus):
-                R[m] = inner_prod_rbf_2(freq_vec[m], freq_vec[0], epsilon, rbf_type) # later, we shall use tau instead of freq
-        
-            out_M = toeplitz(C,R) 
-         
-        elif rbf_type == 'Piecewise Linear':
-        
-            out_L_temp = np.zeros((N_taus-2, N_taus))
-    
-            for p in range(0, N_taus-2):
-                delta_loc = log(tau_vec[p+1]/tau_vec[p])
-            
-                if p == 0 or p == N_taus-3:
-                    out_L_temp[p,p] = 2./(delta_loc**2)
-                    out_L_temp[p,p+1] = -4./(delta_loc**2)
-                    out_L_temp[p,p+2] = 2./(delta_loc**2)
-                    
-                else:
-                    out_L_temp[p,p] = 1./(delta_loc**2)
-                    out_L_temp[p,p+1] = -2./(delta_loc**2)
-                    out_L_temp[p,p+2] = 1./(delta_loc**2)
-                
-            out_M = out_L_temp.T@out_L_temp
-    
-        else: # compute rbf with brute force
-    
-            for n in range(0, N_taus):
-                for m in range(0, N_taus):            
-                    out_M[n,m] = inner_prod_rbf_2(freq_vec[n], freq_vec[m], epsilon, rbf_type)
-                    
-    else: # BHT run
-        
-        out_M = np.zeros((N_taus-2, N_taus+1))
-        
-        for p in range(0, N_taus-2):
 
-            delta_loc = log(tau_vec[p+1]/tau_vec[p])
-            
-            if p==0 or p == N_taus-3:
-                out_M[p,p+1] = 2./(delta_loc**2)
-                out_M[p,p+2] = -4./(delta_loc**2)
-                out_M[p,p+3] = 2./(delta_loc**2)
-                
+    freq_vec = 1 / tau_vec
+    N_taus = tau_vec.size
+
+    # define the M output matrix
+    out_M = np.zeros([N_taus, N_taus])
+
+    # Compute the standard deviation and mean of the logarithmic differences between consecutive elements in tau_vec
+    std_diff_freq = np.std(np.diff(np.log(tau_vec)))
+    mean_diff_freq = np.mean(np.diff(np.log(tau_vec)))
+
+    # if they are, we apply the toeplitz trick
+    toeplitz_trick = std_diff_freq / mean_diff_freq < 0.01
+
+    if toeplitz_trick and rbf_type != 'PWL':  # apply the toeplitz trick to compute the M matrix
+
+        R = np.array([inner_prod_rbf_2(freq_vec[0], freq_vec[n], epsilon, rbf_type) for n in range(N_taus)])
+        C = np.array([inner_prod_rbf_2(freq_vec[n], freq_vec[0], epsilon, rbf_type) for n in range(N_taus)])
+
+        out_M = toeplitz(C, R)
+
+    elif rbf_type == 'PWL':
+
+        out_L_temp = np.zeros((N_taus - 2, N_taus))
+
+        for p in range(N_taus - 2):
+            delta_loc = log(tau_vec[p + 1] / tau_vec[p])
+
+            if p == 0 or p == N_taus - 3:
+                out_L_temp[p, p] = 2. / (delta_loc ** 2)
+                out_L_temp[p, p + 1] = -4. / (delta_loc ** 2)
+                out_L_temp[p, p + 2] = 2. / (delta_loc ** 2)
             else:
-                out_M[p,p+1] = 1./(delta_loc**2)
-                out_M[p,p+2] = -2./(delta_loc**2)
-                out_M[p,p+3] = 1./(delta_loc**2)
-        
+                out_L_temp[p, p] = 1. / (delta_loc ** 2)
+                out_L_temp[p, p + 1] = -2. / (delta_loc ** 2)
+                out_L_temp[p, p + 2] = 1. / (delta_loc ** 2)
+
+        out_M = out_L_temp.T @ out_L_temp
+
+    else:  # compute rbf with brute force
+
+        for n in range(N_taus):
+            for m in range(N_taus):
+                out_M[n, m] = inner_prod_rbf_2(freq_vec[n], freq_vec[m], epsilon, rbf_type)
+
     return out_M
 
 
 def quad_format_separate(A, b, M, lambda_value):
     
     """
-       This function reformats the DRT regression as a quadratic program using either the real or imaginary part of the impedance as follows:
-                min (x^T*H*x + c^T*x) under the constraint that x => 0 with H = 2*(A^T*A + lambda_value*M) and c = -2*b^T*A        
+       This function reformats the DRT regression problem
+       (using either the real or imaginary part of the impedance)
+       as a quadratic program as follows:
+                min (x^T*H*x + c^T*x) 
+                under the constraint that x => 0 
+                where H = 2*(A^T*A + lambda_value*M) and c = -2*b^T*A        
        Inputs: 
             A: discretization matrix
             b: vector of the real or imaginary part of the impedance
             M: differentiation matrix
             lambda_value: regularization parameter used in Tikhonov regularization
        Outputs: 
-            Matrix H
-            Vector c
+            matrix H
+            vector c
     """
     
     H = 2*(A.T@A+lambda_value*M)
@@ -729,7 +592,10 @@ def quad_format_separate(A, b, M, lambda_value):
 def quad_format_combined(A_re, A_im, Z_re, Z_im, M, lambda_value):
     
     """
-       This function reformats the DRT regression as a quadratic program using both real and imaginary parts of the impedance
+       This function reformats the DRT regression 
+       (using both real and imaginary parts of the impedance)
+       as a quadratic program 
+       
        Inputs:
             A_re: discretization matrix for the real part of the impedance
             A_im: discretization matrix for the imaginary part of the impedance
@@ -737,6 +603,7 @@ def quad_format_combined(A_re, A_im, Z_re, Z_im, M, lambda_value):
             Z_im: vector of the imaginary parts of the impedance
             M: differentiation matrix
             lambda_value: regularization parameter used in Tikhonov regularization
+
        Outputs: 
             Matrix H
             Vector c
@@ -749,64 +616,88 @@ def quad_format_combined(A_re, A_im, Z_re, Z_im, M, lambda_value):
     return H, c
 
 
-# def cvxpy_solve_qp(H, c):
-
-#     """ 
-#        This function uses cvxpy to minimize the quadratic problem 0.5*x^T*H*x + c^T*x under the non-negativity constraint.
-#        Inputs: 
-#            H: matrix
-#            c: vector
-#         Output: 
-#            Vector solution of the aforementioned problem
-#     """
-    
-#     N_out = c.shape[0]
-#     x = cp.Variable(shape = N_out, value = np.ones(N_out))
-#     h = np.zeros(N_out)
-    
-#     prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, H) + c@x), [x >= h])
-#     prob.solve(verbose = True, eps_abs = 1E-10, eps_rel = 1E-10, sigma = 1.00e-08, 
-#                max_iter = 200000, eps_prim_inf = 1E-5, eps_dual_inf = 1E-5)
-
-#     gamma = x.value
-    
-#     return gamma
-
-
-def cvxopt_solve_qpr(P, q, G=None, h=None, A=None, b=None):
+def solve_gamma(A_re, A_im, Z_re, Z_im, M, lambda_value):
     
     """
-       This function uses cvxopt to minimize the quadratic problem 0.5*x^T*P*x + q^T*x under the constraints that G*x <= h (element-wise) and A*x = b. 
-       Inputs: 
-           P: matrix
-           q: vector
-           G: matrix
-           h: vector
-           A: matrix
-           B: vector
-       Output: 
-           Vector solution of the aforementioned poblem
+    This function solves a quadratic programming problem using the CVXOPT library.
+
+    Inputs:
+    - A_re, A_im: Real and imaginary parts of the discretization matrix A
+    - Z_re, Z_im: Real and imaginary parts of the impedance Z
+    - M: the derivatives matrix M
+    - lambda_value: Regularization parameter
+
+    Returns:
+    - x: DRT vector
+    """
+
+    ## bound matrix
+    # G@x<=0
+    G = matrix(-np.identity(A_re.shape[0]))
+    h = matrix(np.zeros(A_re.shape[0]))
+    # Formulate the quadratic programming problem
+    H, c = quad_format_combined(A_re, A_im, Z_re, Z_im, M, lambda_value)
+    # Solve the quadratic programming problem
+    sol = solvers.qp(matrix(H), matrix(c), G, h)
+    x = np.array(sol['x']).flatten()
+
+    return x
+
+
+def optimal_lambda(A_re, A_im, Z_re, Z_im, M, data_used, induct_used, log_lambda_0, cv_type):
+    
+    """
+    This function returns the optimized regularization parameter using various cross-validation methods.
+    Inputs:
+        A_re: discretization matrix for the real part of the impedance
+        A_im: discretization matrix for the imaginary part of the impedance
+        Z_re: vector of the real parts of the impedance
+        Z_im: vector of the imaginary parts of the impedance
+        M: derivative matrix
+        log_lambda_0: initial guess for the regularization parameter
+        cv_type: cross-validation method
+        data_used: part of the EIS spectrum used for regularization
+        induct_used: treatment of the inductance part
+    Output:
+        Optimized regularization parameter based on the any chosen cross-validation method
     """
     
-    args = [cvxopt.matrix(P), cvxopt.matrix(q)]
+    # interval of values for the regularization parameter
+    bnds = [(log(10**-7),log(10**0))] 
     
-    if G is not None: # in case the element-wise inequality constraint G*x <= b is included
+    # Generalized cross-validation (GCV) method
+    if cv_type == 'GCV': 
+        res = minimize(param.compute_GCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('GCV')
     
-        args.extend([cvxopt.matrix(G), cvxopt.matrix(h)])
+    # Modified generalized cross-validation (mGCV) method
+    elif cv_type == 'mGCV': 
+        res = minimize(param.compute_mGCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('mGCV')
         
-    if A is not None: # in case the equality constraint A*x = b is included
+    # Robust generalized cross-validation (rGCV) method 
+    elif cv_type == 'rGCV': 
+        res = minimize(param.compute_rGCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('rGCV')  
     
-         args.extend([cvxopt.matrix(A), cvxopt.matrix(b)])
+    # L-curve (LC) method
+    elif cv_type == 'LC':
+        res = minimize(param.compute_LC, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('LC')
+    
+    # real-imaginary (re-im) discrepancy method
+    elif cv_type == 're-im':
+        res = minimize(param.compute_re_im_cv, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('re-im')
         
-    cvxopt.solvers.options['abstol'] = 1e-15
-    cvxopt.solvers.options['reltol'] = 1e-15 ## could be 1e-15
-    sol = cvxopt.solvers.qp(*args)
-    
-    if 'optimal' not in sol['status']:
-        
-        return None
-    
-    return np.array(sol['x']).reshape((P.shape[1],))
+    # k-fold cross-validation (kf) method
+    elif cv_type == 'kf':  
+        res = minimize(param.compute_kf_cv, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M, data_used, induct_used), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
+        print('kf') 
+
+    lambda_value = exp(res.x)
+
+    return lambda_value
 
 
 def pretty_plot(width=8, height=None, plt=None, dpi=None, color_cycle=("qualitative", "Set1_9")):
@@ -833,7 +724,7 @@ def pretty_plot(width=8, height=None, plt=None, dpi=None, color_cycle=("qualitat
 
     if plt is None:
         
-        import matplotlib.pyplot as plt
+        #import matplotlib.pyplot as plt
         #import importlib
         #mod = importlib.import_module("palettable.colorbrewer.%s" % color_cycle[0])
         #colors = getattr(mod, color_cycle[1]).mpl_colors
@@ -861,415 +752,3 @@ def pretty_plot(width=8, height=None, plt=None, dpi=None, color_cycle=("qualitat
     ax.set_ylabel(ax.get_ylabel(), size=labelsize)
 
     return plt
-
-
-# Part 2: Selection of the regularization parameter for ridge regression
-
-def is_PD(A):
-    
-    """
-       This function checks if a matrix A is positive-definite using Cholesky transform
-    """
-    
-    try:
-        np.linalg.cholesky(A)
-        return True
-    except np.linalg.LinAlgError:
-        return False
-
-    
-def nearest_PD(A):
-    
-    """
-       This function finds the nearest positive definite matrix of a matrix A. The code is based on John D'Errico's "nearestSPD" code on Matlab [1]. More details can be found in the following two references:
-         https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
-         N.J. Higham, "Computing a nearest symmetric positive semidefinite matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
-    """
-    
-    B = (A + A.T)/2
-    _, Sigma_mat, V = np.linalg.svd(B)
-
-    H = np.dot(V.T, np.dot(np.diag(Sigma_mat), V))
-
-    A_nPD = (B + H) / 2
-    A_symm = (A_nPD + A_nPD.T) / 2
-
-    k = 1
-    I = np.eye(A_symm.shape[0])
-
-    while not is_PD(A_symm): # the Matlab function chol accepts matrices with eigenvalue = 0, but numpy does not so we replace the Matlab function eps(min_eig) with the following one
-        
-        eps = np.spacing(np.linalg.norm(A_symm))
-        min_eig = min(0, np.min(np.real(np.linalg.eigvals(A_symm))))
-        A_symm += I * (-min_eig * k**2 + eps)
-        k += 1
-
-    return A_symm
-
-
-def compute_GCV(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the score for the generalized cross-validation (GCV) approach.
-       Reference: G. Wahba, A comparison of GCV and GML for choosing the smoothing parameter in the generalized spline smoothing problem, Ann. Statist. 13 (1985) 1378–1402.
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           GCV score
-    """
-    
-    lambda_value = exp(log_lambda)
-    
-    A = np.concatenate((A_re, A_im), axis = 0) # matrix A with A_re and A_im ; see (5) in [4]
-    Z = np.concatenate((Z_re, Z_im), axis = 0) # stacked impedance
-    
-    n_cv = Z.shape[0] # n_cv = 2*N_freqs with N_freqs the number of EIS frequencies
-    
-    A_agm = A.T@A + lambda_value*M # see (13) in [4]
-    
-    if (is_PD(A_agm)==False): # check if A_agm is positive-definite
-        A_agm = nearest_PD(A_agm) 
-        
-    L_agm = cholesky(A_agm) # Cholesky transform to inverse A_agm
-    inv_L_agm = np.linalg.inv(L_agm)
-    inv_A_agm = inv_L_agm.T@inv_L_agm # inverse of A_agm
-    A_GCV = A@inv_A_agm@A.T  # see (13) in [4]
-    
-    # GCV score; see (13) in [4]
-    GCV_num = 1/n_cv*norm((np.eye(n_cv)-A_GCV)@Z)**2 # numerator
-    GCV_dom = (1/n_cv*np.trace(np.eye(n_cv)-A_GCV))**2 # denominator
-    
-    GCV_score = GCV_num/GCV_dom
-    
-    return GCV_score
-
-
-def compute_mGCV(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the score for the modified generalized cross validation (mGCV) approach.
-       Reference: Y.J. Kim, C. Gu, Smoothing spline Gaussian regression: More scalable computation via efficient approximation, J. Royal Statist. Soc. 66 (2004) 337–356.
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           mGCV score
-    """
-    
-    lambda_value = exp(log_lambda)
-    
-    A = np.concatenate((A_re, A_im), axis = 0) # see (5) in [4]
-    Z = np.concatenate((Z_re, Z_im), axis = 0)
-    
-    n_cv = Z.shape[0] # 2*number of frequencies
-    
-    A_agm = A.T@A + lambda_value*M # see (13) in [4]
-
-    if (is_PD(A_agm)==False):
-        A_agm = nearest_PD(A_agm)
-    
-    L_agm = cholesky(A_agm) # Cholesky transform to inverse A_agm
-    inv_L_agm = np.linalg.inv(L_agm)
-    inv_A_agm = inv_L_agm.T@inv_L_agm # inverse of A_agm
-    A_GCV = A@inv_A_agm@A.T # see (13) in [4]
-    
-    # the stabilization parameter, rho, is computed as described by Kim et al.
-    rho = 2 # see (15) in [4]
-    
-    # mGCV score ; see (14) in [4]
-    mGCV_num = 1/n_cv*norm((np.eye(n_cv)-A_GCV)@Z)**2 # numerator
-    mGCV_dom = ((1/n_cv)*(np.trace(np.eye(n_cv)-rho*A_GCV)))**2 # denominator
-    mGCV_score = mGCV_num/mGCV_dom
-    
-    return mGCV_score
-
-
-def compute_rGCV(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the score for the robust generalized cross-validation (rGCV) approach.
-       Reference: M. A. Lukas, F. R. de Hoog, R. S. Anderssen, Practical use of robust GCV and modified GCV for spline smoothing, Comput. Statist. 31 (2016) 269–289.   
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           rGCV score    
-    """
-     
-    lambda_value = exp(log_lambda)
-    
-    A = np.concatenate((A_re, A_im), axis = 0) # see (5) in [4]
-    Z = np.concatenate((Z_re, Z_im), axis = 0)
-    
-    n_cv = Z.shape[0] # 2*number of frequencies
-    
-    A_agm = A.T@A + lambda_value*M # see (13) in [4]
-
-    if (is_PD(A_agm)==False):
-        A_agm = nearest_PD(A_agm)
-    
-    L_agm = cholesky(A_agm) # Cholesky transform to inverse A_agm
-    inv_L_agm = np.linalg.inv(L_agm)
-    inv_A_agm = inv_L_agm.T@inv_L_agm # inverse of A_agm
-    A_GCV = A@inv_A_agm@A.T # see (13) in [4]
-    
-    # GCV score ; see (13) in [4]
-    rGCV_num = 1/n_cv*norm((np.eye(n_cv)-A_GCV)@Z)**2
-    rGCV_dom = ((1/n_cv)*(np.trace(np.eye(n_cv)-A_GCV)))**2
-    rGCV = rGCV_num/rGCV_dom
-    
-    # the robust parameter, xsi, is computed as described in Lukas et al.
-    xi = 0.3 # see (16) in [4]
-    
-    # mu_2 parameter ; see (16) in [4]
-    mu_2 = (1/n_cv)*np.trace(A_GCV.T@A_GCV)
-    
-    # rGCV score ; see (16) in [4]
-    rGCV_score = (xi + (1-xi)*mu_2)*rGCV
-        
-    return rGCV_score
-
-
-def compute_re_im_cv(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the score for real-imaginary discrepancy (re-im).
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           re-im score
-    """
-    
-    lambda_value = exp(log_lambda)
-    
-    # non-negativity constraint on the DRT gmma
-    lb = np.zeros([Z_re.shape[0]+1]) # + 1 if a resistor or an inductor is included in the DRT model
-    bound_mat = np.eye(lb.shape[0]) 
-    
-    # quadratic programming through cvxopt  quad_format_separate
-    H_re, c_re = quad_format_separate(A_re, Z_re, M, lambda_value)
-    gamma_ridge_re = cvxopt_solve_qpr(H_re, c_re, -bound_mat, lb)
-    H_im, c_im = quad_format_separate(A_im, Z_im, M, lambda_value)
-    gamma_ridge_im = cvxopt_solve_qpr(H_im, c_im, -bound_mat, lb)
-    
-    # stacking the resistance R and inductance L on top of gamma_ridge_im and gamma_ridge_re, repectively
-    gamma_ridge_re_cv = np.concatenate((np.array([0, gamma_ridge_re[1]]), gamma_ridge_im[2:]))
-    gamma_ridge_im_cv = np.concatenate((np.array([gamma_ridge_im[0], 0]), gamma_ridge_re[2:]))
-    
-    # re-im score ; see (13) in [2] and (17) in [4]
-    re_im_cv_score = norm(Z_re - A_re@gamma_ridge_re_cv)**2+norm(Z_im-A_im@gamma_ridge_im_cv)**2
-    
-    return re_im_cv_score
-
-
-def compute_kf_cv(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the k-fold (kf) score.
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           kf score
-    """
-
-    lambda_value = exp(log_lambda)
-    
-    # non-negativity constraint on the DRT gamma
-    lb = np.zeros([Z_re.shape[0]+1])
-    bound_mat = np.eye(lb.shape[0])
-    
-    # parameters for kf
-    N_splits = 5 # N_splits=N_freq correspond to leave-one-out cross-validation
-    random_state = 34054 + compute_kf_cv.counter*100  # change random state for each experiment
-    kf = KFold(n_splits = N_splits, shuffle = True, random_state = random_state)                
-    kf_cv = 0
-    
-    # train and test 
-    for train_index, test_index in kf.split(Z_re):
-        
-        # step 1: preparation of the train and test sets
-        print("TRAIN:", train_index, "TEST:", test_index)
-        A_re_train, A_re_test = A_re[train_index,:], A_re[test_index,:]
-        A_im_train, A_im_test = A_im[train_index,:], A_im[test_index,:]        
-        Z_re_train, Z_re_test = Z_re[train_index], Z_re[test_index]
-        Z_im_train, Z_im_test = Z_im[train_index], Z_im[test_index]
-        
-        # step 2: qudratic programming to obtain the DRT
-        H_combined, c_combined = quad_format_combined(A_re_train, A_im_train, Z_re_train, Z_im_train, M, lambda_value)
-        gamma_ridge = cvxopt_solve_qpr(H_combined, c_combined, -bound_mat, lb)
-        
-        # step 3: update of the kf scores    
-        kf_cv += 1/Z_re_test.shape[0]*(norm(Z_re_test-A_re_test@gamma_ridge)**2 + norm(Z_im_test-A_im_test@gamma_ridge)**2)
-    
-    # kf score ; see section 1.2 in the SI of [4]
-    kf_cv_score = kf_cv/N_splits
-    
-    return kf_cv_score
-compute_kf_cv.counter = 0
-
-
-def compute_LC(log_lambda, A_re, A_im, Z_re, Z_im, M):
-    
-    """
-       This function computes the score for L curve (LC)
-       Reference: P.C. Hansen, D.P. O’Leary, The use of the L-curve in the regularization of discrete ill-posed problems, SIAM J. Sci. Comput. 14 (1993) 1487–1503.
-       Inputs: 
-           log_lambda: regularization parameter
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-       Output:
-           LC score
-    """
-    
-    lambda_value = exp(log_lambda)
-    
-    A = np.concatenate((A_re, A_im), axis = 0) # matrix A with A_re and A_im; # see (5) in [4]
-    Z = np.concatenate((Z_re, Z_im), axis = 0) # stacked impedance
-    
-    # numerator eta_num of the first derivative of eta = log(||Z_exp - Ax||^2)
-    A_agm = A.T@A + lambda_value*M # see (13) in [4]
-    if (is_PD(A_agm)==False):
-        A_agm = nearest_PD(A_agm)
-           
-    L_agm = cholesky(A_agm) # Cholesky transform to inverse A_agm
-    inv_L_agm = np.linalg.inv(L_agm)
-    inv_A_agm = inv_L_agm.T@inv_L_agm # inverse of A_agm
-    A_LC = A@((inv_A_agm.T@inv_A_agm)@inv_A_agm)@A.T
-    eta_num = Z.T@A_LC@Z 
-
-    # denominator eta_denom of the first derivative of eta
-    A_agm_d = A@A.T + lambda_value*np.eye(A.shape[0])
-    if (is_PD(A_agm_d)==False):
-        A_agm_d = nearest_PD(A_agm_d)
-    
-    L_agm_d = cholesky(A_agm_d) # Cholesky transform to inverse A_agm_d
-    inv_L_agm_d = np.linalg.inv(L_agm_d)
-    inv_A_agm_d = inv_L_agm_d.T@inv_L_agm_d
-    eta_denom = lambda_value*Z.T@(inv_A_agm_d.T@inv_A_agm_d)@Z
-    
-    # derivative of eta
-    eta_prime = eta_num/eta_denom
-    
-    # numerator theta_num of the first derivative of theta = log(lambda*||Lx||^2)
-    theta_num  = eta_num
-    
-    # denominator theta_denom of the first derivative of theta
-    A_LC_d = A@(inv_A_agm.T@inv_A_agm)@A.T
-    theta_denom = Z.T@A_LC_d@Z
-    
-    # derivative of theta 
-    theta_prime = -(theta_num)/theta_denom
-    
-    # numerator LC_num of the LC score in (19) in [4]
-    a_sq = (eta_num/(eta_denom*theta_denom))**2
-    p = (Z.T@(inv_A_agm_d.T@inv_A_agm_d)@Z)*theta_denom
-    m = (2*lambda_value*Z.T@((inv_A_agm_d.T@inv_A_agm_d)@inv_A_agm_d)@Z)*theta_denom
-    q = (2*lambda_value*Z.T@(inv_A_agm_d.T@inv_A_agm_d)@Z)*eta_num 
-    LC_num = a_sq*(p+m-q)
-
-    # denominator LC_denom of the LC score
-    LC_denom = ((eta_prime)**2 + (theta_prime)**2)**(3/2)
-    
-    # LC score ; see (19) in [4]
-    LC_score = LC_num/LC_denom
-    
-    return -LC_score 
-
-
-def optimal_lambda(A_re, A_im, Z_re, Z_im, M, log_lambda_0, cv_type):
-    
-    """
-       This function returns the regularization parameter given an initial guess and a regularization method. For constrained minimization, we use the scipy function sequential least squares programming (SLSQP).
-       Inputs: 
-           A_re: discretization matrix for the real part of the impedance
-           A_im: discretization matrix for the real part of the impedance
-           Z_re: vector of the real parts of the impedance
-           Z_im: vector of the imaginary parts of the impedance
-           M: differentiation matrix 
-           log_lambda0: initial guess for the regularization parameter
-           cv_type: regularization method
-       Output:
-           optimized regularization parameter given the regularization method chosen
-    """
-    
-    # credible for the lambda values
-    bnds = [(log(10**-7),log(10**0))] 
-    
-    # GCV method
-    if cv_type == 'GCV': 
-        res = minimize(compute_GCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('GCV')
-    
-    # mGCV method
-    elif cv_type == 'mGCV': 
-        res = minimize(compute_mGCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('mGCV')
-        
-    # rGCV method
-    elif cv_type == 'rGCV': 
-        res = minimize(compute_rGCV, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('rGCV')  
-    
-    # L-curve method
-    elif cv_type == 'LC':
-        res = minimize(compute_LC, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('LC')
-    
-    # re-im discrepancy
-    elif cv_type == 're-im':
-        res = minimize(compute_re_im_cv, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('re-im')
-        
-    # k-fold 
-    elif cv_type == 'kf':  
-        res = minimize(compute_kf_cv, log_lambda_0, args=(A_re, A_im, Z_re, Z_im, M), options={'disp': True, 'maxiter': 2000}, bounds = bnds, method = 'SLSQP')
-        print('kf') 
-    
-    # custom value
-    else:
-        lambda_value = exp(log_lambda_0)
-        print('custom')
-        return lambda_value
-
-    lambda_value = exp(res.x)
-
-    return lambda_value
-
-# Part 3: Peak analysis
-
-def gauss_fct(p, tau, N_peaks): # N_peaks is the number of peaks in the DRT spectrum
-    
-    gamma_out = np.zeros_like(tau) # sum of Gaussian functions, whose parameters (the prefactor sigma_f, mean mu_log_tau, and standard deviation 1/inv_sigma for each DRT peak) are encapsulated in p
-    
-    for k in range(N_peaks):
-        
-        sigma_f, mu_log_tau, inv_sigma = p[3*k:3*k+3] 
-        gaussian_out = sigma_f**2*np.exp(-inv_sigma**2/2*((np.log(tau) - mu_log_tau)**2)) # we use inv_sigma because this leads to less computational problems (no exploding gradient when sigma->0)
-        gamma_out += gaussian_out 
-    return gamma_out    

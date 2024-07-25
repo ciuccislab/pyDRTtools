@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__authors__ = 'Francesco Ciucci, Ting Hei Wan'
+__authors__ = 'Francesco Ciucci, Ting Hei Wan, Baptiste Py, Adeleke Maradesa'
 
-__date__ = '20th August 2023'
+__date__ = '10th April 2024'
 
 
 from math import pi, log
@@ -9,33 +9,9 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import multivariate_normal as MVN
 
-# DRTtools related package
-#from . import pyDRTtools_basics as gf
-from . import basics 
-
-
 """
-
 Reference: J. Liu, T. H. Wan, F. Ciucci, A Bayesian view on the Hilbert transform and the Kramers-Kronig transform of electrochemical impedance data: Probabilistic estimates and quality scores, Electrochimica Acta. 357 (2020) 136864.
-
 """
-
-
-def compute_A_H_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2='impedance'):
-    
-    out_A_re = basics.assemble_A_re(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
-    out_A_H_re = out_A_re[:,1:]
-    
-    return out_A_H_re
-
-
-def compute_A_H_im(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2='impedance'):
-    
-    out_A_im = basics.compute_A_im(freq_vec, tau_vec, epsilon, rbf_type, flag1, flag2)
-    out_A_H_im = out_A_im[:,1:]
-    
-    return out_A_H_im
-
 
 def compute_JSD(mu_P, Sigma_P, mu_Q, Sigma_Q, N_MC_samples): # this function computes the Jensen-Shannon distance (JSD)
     
@@ -149,8 +125,6 @@ def HT_single_est(theta_0, Z_exp, A, A_H, M, N_freqs, N_taus):
 
     print('sigma_n; sigma_beta; sigma_lambda')
     res = minimize(NMLL_fct, theta_0, args=(Z_exp, A, M, N_freqs, N_taus), callback=print_results, options={'gtol': 1E-8, 'disp': True})
-    # theta_0_refined = res.x
-    # res = minimize(NMLL_fct, theta_0_refined, args=(Z_exp, A, L, N_freqs, N_taus), callback=print_results, options={'disp': True}, method = 'Nelder-Mead', tol = 1E-8)
 
     # step 2: collect the optimized theta's
     sigma_n, sigma_beta, sigma_lambda = res.x
@@ -296,44 +270,3 @@ def EIS_score(theta_0, freq_vec, Z_exp, out_dict_real, out_dict_imag, N_MC_sampl
     }
     
     return out_scores
-
-    
-def HT_est(theta_0, Z_exp, freq_vec, tau_vec, Dn='D2', data_flag='impedance'):
-    
-    """
-    This function computes the mean vectors, covariance matrices, and scores 
-    Inputs:
-        theta_0: initial guess for the vector of hyperparameters
-        Z_exp: experimental data 
-        freq_vec: frequency vector
-        tau_vec: timescale vector
-        Dn: order of the differenciation matrix
-        flag: nature of the data, i.e., impedance or admittance
-    Outputs:
-        dictionary containing the mean vectors, covariance matrices, and scores
-     """
-    
-    N_freqs = freq_vec.size
-    N_taus = tau_vec.size
-
-    # compute the matrix $A = A_re + i A_im$
-    A_re = basics.compute_A_re(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
-    A_im = basics.compute_A_im(freq_vec, tau_vec, epsilon=0, rbf_type='PWL', flag1='BHT', flag2=data_flag)
-    
-    # as well as the ones used for the Hilbert transform
-    A_H_re = compute_A_H_re(freq_vec, tau_vec, 0, 'PWL', 'BHT', flag2=data_flag)
-    A_H_im = compute_A_H_im(freq_vec, tau_vec, 0, 'PWL', 'BHT', flag2=data_flag)
-
-    # compute the matrix L
-    if Dn == 'D1': # first-order differentiation matrix
-        L = basics.assemble_M_1(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
-        
-    else: # second-order differentiation matrix
-        L = basics.assemble_M_2(tau_vec, epsilon=0, rbf_type='PWL', flag='BHT')
-
-    # estimates
-    out_dict_real = HT_single_est(theta_0, Z_exp.real, A_re, A_H_im, L, N_freqs, N_taus)
-    out_dict_imag = HT_single_est(theta_0, Z_exp.imag, A_im, A_H_re, L, N_freqs, N_taus)
-    out_scores = EIS_score(theta_0, freq_vec, Z_exp, out_dict_real, out_dict_imag)
-
-    return out_dict_real, out_dict_imag, out_scores
