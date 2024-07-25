@@ -1,8 +1,6 @@
-#-*- coding: utf-8 -*-
-
 __authors__ = 'Francesco Ciucci, Adeleke Maradesa, Baptiste Py, Ting Hei Wan'
 
-__date__ = '12th June 2024'
+__date__ = '20th August 2023'
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -159,7 +157,7 @@ class Ui_MainWindow(object):
         self.data_used_label.setFont(font)
         self.data_used_label.setObjectName("data_used_label")
         self.induct_label = QtWidgets.QLabel(self.settings_layout)
-        self.induct_label.setGeometry(QtCore.QRect(10, 170, 91, 16))
+        self.induct_label.setGeometry(QtCore.QRect(10, 180, 91, 16))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -167,7 +165,7 @@ class Ui_MainWindow(object):
         self.induct_label.setFont(font)
         self.induct_label.setObjectName("induct_label")
         self.der_label = QtWidgets.QLabel(self.settings_layout)
-        self.der_label.setGeometry(QtCore.QRect(10, 210, 171, 16))
+        self.der_label.setGeometry(QtCore.QRect(10, 240, 171, 16))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -175,7 +173,7 @@ class Ui_MainWindow(object):
         self.der_label.setFont(font)
         self.der_label.setObjectName("der_label")
         self.induct_choice = QtWidgets.QComboBox(self.settings_layout)
-        self.induct_choice.setGeometry(QtCore.QRect(90, 180, 161, 31))
+        self.induct_choice.setGeometry(QtCore.QRect(90, 200, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(8)
         self.induct_choice.setFont(font)
@@ -186,7 +184,7 @@ class Ui_MainWindow(object):
         self.induct_choice.addItem("")
         self.induct_choice.addItem("")
         self.der_choice = QtWidgets.QComboBox(self.settings_layout)
-        self.der_choice.setGeometry(QtCore.QRect(90, 230, 161, 31))
+        self.der_choice.setGeometry(QtCore.QRect(90, 260, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(8)
         self.der_choice.setFont(font)
@@ -207,7 +205,7 @@ class Ui_MainWindow(object):
         self.data_used_choice.addItem("")
         self.data_used_choice.addItem("")
         self.lambda_choice_label = QtWidgets.QLabel(self.settings_layout)
-        self.lambda_choice_label.setGeometry(QtCore.QRect(10, 270, 191, 16))
+        self.lambda_choice_label.setGeometry(QtCore.QRect(10, 300, 151, 16))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -215,7 +213,7 @@ class Ui_MainWindow(object):
         self.lambda_choice_label.setFont(font)
         self.lambda_choice_label.setObjectName("lambda_choice_label")
         self.lambda_choice = QtWidgets.QComboBox(self.settings_layout)
-        self.lambda_choice.setGeometry(QtCore.QRect(90, 290, 161, 31))
+        self.lambda_choice.setGeometry(QtCore.QRect(90, 320, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(8)
         self.lambda_choice.setFont(font)
@@ -230,7 +228,7 @@ class Ui_MainWindow(object):
         self.lambda_choice.addItem("")
         self.lambda_choice.addItem("")
         self.sample_no = QtWidgets.QLabel(self.settings_layout)
-        self.sample_no.setGeometry(QtCore.QRect(10, 420, 131, 16))
+        self.sample_no.setGeometry(QtCore.QRect(10, 420, 121, 16))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -252,7 +250,7 @@ class Ui_MainWindow(object):
         self.import_label.setFont(font)
         self.import_label.setObjectName("import_label")
         self.reg_param_label = QtWidgets.QLabel(self.settings_layout)
-        self.reg_param_label.setGeometry(QtCore.QRect(10, 320, 181, 16))
+        self.reg_param_label.setGeometry(QtCore.QRect(10, 360, 181, 16))
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -260,25 +258,11 @@ class Ui_MainWindow(object):
         self.reg_param_label.setFont(font)
         self.reg_param_label.setObjectName("reg_param_label")
         self.reg_param_entry = QtWidgets.QLineEdit(self.settings_layout)
-        self.reg_param_entry.setGeometry(QtCore.QRect(90, 340, 161, 31))
+        self.reg_param_entry.setGeometry(QtCore.QRect(90, 380, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(8)
         self.reg_param_entry.setFont(font)
         self.reg_param_entry.setObjectName("reg_param_entry")
-        self.reg_param_label_2 = QtWidgets.QLabel(self.settings_layout)
-        self.reg_param_label_2.setGeometry(QtCore.QRect(10, 370, 231, 16))
-        font = QtGui.QFont()
-        font.setPointSize(8)
-        font.setBold(True)
-        font.setWeight(75)
-        self.reg_param_label_2.setFont(font)
-        self.reg_param_label_2.setObjectName("reg_param_label_2")
-        self.reg_param_entry_2 = QtWidgets.QLineEdit(self.settings_layout)
-        self.reg_param_entry_2.setGeometry(QtCore.QRect(90, 390, 161, 31))
-        font = QtGui.QFont()
-        font.setPointSize(8)
-        self.reg_param_entry_2.setFont(font)
-        self.reg_param_entry_2.setObjectName("reg_param_entry_2")
         self.RBF_frame = QtWidgets.QGroupBox(self.General_frame)
         self.RBF_frame.setGeometry(QtCore.QRect(10, 490, 281, 91))
         font = QtGui.QFont()
@@ -550,7 +534,7 @@ class Ui_MainWindow(object):
         self.discre_choice.setItemText(4, _translate("MainWindow", "Inverse Quadratic"))
         self.discre_choice.setItemText(5, _translate("MainWindow", "Inverse Quadric"))
         self.discre_choice.setItemText(6, _translate("MainWindow", "Cauchy"))
-        self.discre_choice.setItemText(7, _translate("MainWindow", "PWL"))
+        self.discre_choice.setItemText(7, _translate("MainWindow", "Piecewise Linear"))
         self.data_used_label.setText(_translate("MainWindow", "Data Used"))
         self.induct_label.setText(_translate("MainWindow", "Inductance"))
         self.der_label.setText(_translate("MainWindow", "Regularization Derivative"))
@@ -565,7 +549,7 @@ class Ui_MainWindow(object):
         self.data_used_choice.setItemText(0, _translate("MainWindow", "Combined Re-Im Data"))
         self.data_used_choice.setItemText(1, _translate("MainWindow", "Re Data"))
         self.data_used_choice.setItemText(2, _translate("MainWindow", "Im Data"))
-        self.lambda_choice_label.setText(_translate("MainWindow", "Parameter Selection Method"))
+        self.lambda_choice_label.setText(_translate("MainWindow", "Parameter Selection"))
         self.lambda_choice.setCurrentText(_translate("MainWindow", "custom"))
         self.lambda_choice.setItemText(0, _translate("MainWindow", "custom"))
         self.lambda_choice.setItemText(1, _translate("MainWindow", "GCV"))
@@ -579,10 +563,6 @@ class Ui_MainWindow(object):
         self.import_label.setText(_translate("MainWindow", "Import Data"))
         self.reg_param_label.setText(_translate("MainWindow", "Regularization parameter"))
         self.reg_param_entry.setText(_translate("MainWindow", "0.001"))
-
-        self.reg_param_label_2.setText(_translate("MainWindow", "Optimal Regularization parameter"))
-        self.reg_param_entry_2.setObjectName("optima_reg_param")
-        ##
         self.RBF_frame.setTitle(_translate("MainWindow", "Options for RBF"))
         self.run_frame.setTitle(_translate("MainWindow", "Options for RBF"))
         self.shape_control_label.setText(_translate("MainWindow", "RBF Shape Control"))
@@ -615,7 +595,6 @@ class Ui_MainWindow(object):
         self.export_DRT_button.setText(_translate("MainWindow", "Export"))
         self.export_EIS_button.setText(_translate("MainWindow", "Export"))
         self.export_fig_button.setText(_translate("MainWindow", "Save"))
-        
 
 
 if __name__ == "__main__":

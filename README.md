@@ -1,6 +1,6 @@
 # pyDRTtools
 
-We are pleased to introduce the pyDRTtools, is the python version of DRTtools for computing distribution relaxation times (DRT) from electrochemical impedance spectroscopy (EIS) data. 
+We are pleased to introduce the pyDRTtools, the python version of DRTtools for computing distribution relaxation times (DRT) from electrochemical impedance spectroscopy (EIS) data. 
 
 **What is the pyDRTtools? Why would I want it?**
 
