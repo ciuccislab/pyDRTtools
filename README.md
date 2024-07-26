@@ -41,8 +41,6 @@ pip install pyDRTtools
 ```
 !launchGUI
 ```
-Detailed installation instructions are available in the DRT toolbox user's guide (also included with the standard distribution).
-
 **How to cite this work?**
 
 Refer to the GitHub repository (https://github.com/ciuccislab/pyDRTtools) so that you can cite each function appropriately.
