@@ -654,10 +654,10 @@ def optimal_lambda(A_re, A_im, Z_re, Z_im, M, data_used, induct_used, log_lambda
         Z_re: vector of the real parts of the impedance
         Z_im: vector of the imaginary parts of the impedance
         M: derivative matrix
-        log_lambda_0: initial guess for the regularization parameter
-        cv_type: cross-validation method
         data_used: part of the EIS spectrum used for regularization
         induct_used: treatment of the inductance part
+        log_lambda_0: initial guess for the regularization parameter
+        cv_type: cross-validation method
     Output:
         Optimized regularization parameter based on the any chosen cross-validation method
     """
