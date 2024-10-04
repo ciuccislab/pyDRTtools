@@ -205,7 +205,7 @@ class GUI(QtWidgets.QMainWindow):
         graphicscene.addWidget(fig)
         self.ui.plot_panel.setScene(graphicscene)
         self.ui.plot_panel.show()
-    
+
     def export_DRT(self): # callback for exporting the DRT results
         
         # return None if the users have not conducted any computation
@@ -258,6 +258,65 @@ class GUI(QtWidgets.QMainWindow):
                     writer.writerow([self.data.out_tau_vec[n], 
                                      self.data.mu_gamma_fine_re[n],
                                      self.data.mu_gamma_fine_im[n]])
+        # Check if data_frame exists, and save it as a separate CSV file            
+        if hasattr(self.data, 'df'):
+            df_path = path.replace('.csv', '_peaks.csv')
+            self.data.df.to_csv(df_path, index=False)
+            print(f"Peaks data saved as: {df_path}")
+
+    
+    # def export_DRT(self): # callback for exporting the DRT results
+        
+    #     # return None if the users have not conducted any computation
+    #     if self.data == None:
+    #         return
+        
+    #     # select path to save the results
+    #     path, ext = QFileDialog.getSaveFileName(None, "Please directory to save the DRT result", 
+    #                                             "", "CSV files (*.csv);; TXT files (*.txt)")
+        
+    #     if self.data.method == 'simple':
+    #         with open(path, 'w', newline='') as save_file:
+    #             writer = csv.writer(save_file)
+                
+    #             # first save L and R
+    #             writer.writerow(['L', self.data.L])
+    #             writer.writerow(['R', self.data.R])
+    #             writer.writerow(['tau','gamma'])
+                
+    #             # after that, save tau and gamma
+    #             for n in range(self.data.out_tau_vec.shape[0]):
+    #                 writer.writerow([self.data.out_tau_vec[n], self.data.gamma[n]])
+            
+    #     elif self.data.method == 'credit':
+    #         with open(path, 'w', newline='') as save_file:
+    #             writer = csv.writer(save_file)
+                
+    #             # first save L and R
+    #             writer.writerow(['L', self.data.L])
+    #             writer.writerow(['R', self.data.R])
+    #             writer.writerow(['tau','MAP','Mean','Upperbound','Lowerbound'])
+                
+    #             # after that, save tau, gamma, mean, upper bound, and lower bound
+    #             for n in range(self.data.out_tau_vec.shape[0]):
+    #                 writer.writerow([self.data.out_tau_vec[n], self.data.gamma[n],
+    #                                 self.data.mean[n], self.data.upper_bound[n], 
+    #                                 self.data.lower_bound[n]] )
+                        
+    #     elif self.data.method == 'BHT':
+    #         with open(path, 'w', newline='') as save_file:
+    #             writer = csv.writer(save_file)
+                
+    #             # first save L and R
+    #             writer.writerow(['L', self.data.mu_L_0])
+    #             writer.writerow(['R', self.data.mu_R_inf])
+    #             writer.writerow(['tau','gamma_Re','gamma_Im'])
+                
+    #             # after that, save tau, gamma_re, and gamma_im 
+    #             for n in range(self.data.out_tau_vec.shape[0]):
+    #                 writer.writerow([self.data.out_tau_vec[n], 
+    #                                  self.data.mu_gamma_fine_re[n],
+    #                                  self.data.mu_gamma_fine_im[n]])
     
     def export_EIS(self): # callback for exporting the EIS fitting results
         
