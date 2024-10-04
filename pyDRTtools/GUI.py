@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __authors__ = 'Francesco Ciucci, Baptiste Py, Ting Hei Wan, Adeleke Maradesa'
 
-__date__ = '28th June 2024'
+__date__ = '4th June 2024'
 
 import sys
 import csv
@@ -206,6 +206,7 @@ class GUI(QtWidgets.QMainWindow):
         self.ui.plot_panel.setScene(graphicscene)
         self.ui.plot_panel.show()
 
+    
     def export_DRT(self): # callback for exporting the DRT results
         
         # return None if the users have not conducted any computation
