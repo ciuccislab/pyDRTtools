@@ -618,11 +618,45 @@ class Ui_MainWindow(object):
         
 
 
+# if __name__ == "__main__":
+#     import sys
+#     app = QtWidgets.QApplication(sys.argv)
+#     MainWindow = QtWidgets.QMainWindow()
+#     ui = Ui_MainWindow()
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     sys.exit(app.exec_())
+
 if __name__ == "__main__":
     import sys
+    # Enable high DPI scaling (already done)
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    # Use high DPI icons (already done)
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+
+    # Set application scaling to be adaptive
     app = QtWidgets.QApplication(sys.argv)
+
+    # Detect the current screen's DPI scaling
+    screen = app.primaryScreen()
+    logical_dpi = screen.logicalDotsPerInch()  # Fetch DPI for scaling
+    scaling_factor = logical_dpi / 96.0  # Assuming 96 DPI is normal
+
+    # Apply a custom scaling factor based on detected DPI
+    if scaling_factor > 1:
+        app.setStyleSheet(f"font-size: {12 * scaling_factor}px;")
+    
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+
+    # Adjust scaling for different screen resolutions
+    if scaling_factor > 1.5:  # 4K scaling factor
+        MainWindow.resize(int(1600 * scaling_factor), int(900 * scaling_factor))
+    else:  # 2.5K or standard screens
+        MainWindow.resize(int(1200 * scaling_factor), int(800 * scaling_factor))
+
     MainWindow.show()
     sys.exit(app.exec_())
+
+
