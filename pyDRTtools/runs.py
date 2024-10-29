@@ -489,7 +489,7 @@ def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data'
 
     return entry
 
-##
+#
 
 def BHT_run(entry, rbf_type = 'Gaussian', der_used = '1st order', shape_control = 'FWHM Coefficient', coeff = 0.5):
     
