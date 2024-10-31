@@ -433,7 +433,6 @@ def simple_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', 
     entry.method = 'simple'
     
     return entry
-    # return entry, entry.lambda_value
 
 
 def Bayesian_run(entry, rbf_type = 'Gaussian', data_used = 'Combined Re-Im Data', induct_used = 1, der_used = '1st order', cv_type = 'GCV', reg_param = 1E-3, shape_control = 'FWHM Coefficient', coeff = 0.5, NMC_sample = 2000):
