@@ -115,18 +115,29 @@ class GUI(QtWidgets.QMainWindow):
         
         # we perform the computation
         entry = self.data
-        # parameter selection
+        # optimally select the regularization level
         if cv_type == 'custom':
-            entry.lambda_value = reg_param # show custom parameter inserted by the user
-            self.data,_ = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
-                                der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
-        else: # optimally select the regularization parameter
-            self.data, entry.lambda_value = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
-                                der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
+            entry.lambda_value = reg_param
+        else:
+            entry.lambda_value = basics.optimal_lambda(entry.A_re, entry.A_im, entry.b_re, entry.b_im, entry.M, data_used, induct_used, -3, cv_type)
 
         # Update the QLineEdit with the computed regularization parameter
         self.ui.reg_param_entry_2.setText(str(entry.lambda_value))
+
         self.plotting_callback('DRT_data')
+        
+        # # parameter selection
+        # if cv_type == 'custom':
+        #     entry.lambda_value = reg_param # show custom parameter inserted by the user
+        #     self.data,_ = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
+        #                         der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
+        # else: # optimally select the regularization parameter
+        #     self.data, entry.lambda_value = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
+        #                         der_used = der_used, cv_type = cv_type, reg_param = reg_param, shape_control = shape_control, coeff = coeff)
+
+        # # Update the QLineEdit with the computed regularization parameter
+        # self.ui.reg_param_entry_2.setText(str(entry.lambda_value))
+        # self.plotting_callback('DRT_data')
 
         ##
         # self.data = simple_run(self.data, rbf_type = rbf_type, data_used = data_used, induct_used = induct_used,
