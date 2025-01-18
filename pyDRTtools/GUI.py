@@ -278,6 +278,8 @@ class GUI(QtWidgets.QMainWindow):
         # select path to save the result
         path, ext = QFileDialog.getSaveFileName(None, "Please directory to save the EIS fitting result", 
                                                 "", "CSV files (*.csv);; TXT files (*.txt)")
+        if path = "": # Check if the path is empty
+            return # Exitthe function if no path is selected 
                         
         if self.data.method == 'BHT': # save result for BHT
             with open(path, 'w', newline='') as save_file:
