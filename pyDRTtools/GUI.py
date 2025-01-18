@@ -216,7 +216,10 @@ class GUI(QtWidgets.QMainWindow):
         # select path to save the results
         path, ext = QFileDialog.getSaveFileName(None, "Please directory to save the DRT result", 
                                                 "", "CSV files (*.csv);; TXT files (*.txt)")
-        
+
+        if path == "":  # Check if the path is empty
+            return  # Exit the function if no path is selected
+            
         if self.data.method == 'simple':
             with open(path, 'w', newline='') as save_file:
                 writer = csv.writer(save_file)
