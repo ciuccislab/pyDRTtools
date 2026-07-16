@@ -61,11 +61,11 @@ class GUI(QtWidgets.QMainWindow):
        
     def import_file(self):
         
-        # file dialog pop up, the users can choose a csv or txt file
-        path, ext = QFileDialog.getOpenFileName(None, "Please choose a file", "", "All Files (*);; CSV files (*.csv);; TXT files (*.txt)") 
+        # file dialog pop up, the users can choose a csv or txt/z file
+        path, ext = QFileDialog.getOpenFileName(None, "Please choose a file", "", "All Files (*);; CSV files (*.csv);; TXT files (*.txt);; Z files (*.z)") 
         
         # return if there is no path or the file format is not correct
-        if not (path.endswith('.csv') or path.endswith('.txt')):
+        if not (path.endswith('.csv') or path.endswith('.txt') or path.endswith('.z')):
             print('return')
             return
             

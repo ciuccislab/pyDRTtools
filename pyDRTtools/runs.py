@@ -80,7 +80,7 @@ class EIS_object(object):
             Z_prime = data[:, 1]
             Z_double_prime = data[:, 2]
         
-        elif filename.endswith('.txt'): # import from txt file
+        elif filename.endswith('.txt') or filename.endswith('.z'): # import from txt/z file
             data = np.loadtxt(filename)
             freq = data[:, 0]
             Z_prime = data[:, 1]
